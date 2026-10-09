@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* Design tokens taken from the approved mockup. */
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-navy: #0B1B3A;
+  --color-navy-2: #13294F;
+  --color-navy-ink: #070F22;
+  --color-navy-hover: #16264A;
+  --color-brand: #2563EB;
+  --color-brand-dark: #1D4ED8;
+  --color-cyan: #22D3EE;
+  --color-cyan-light: #67E8F9;
+  --color-teal: #0E7490;
+  --color-page: #F3F5FA;
+  --color-page-admin: #EEF1F6;
+  --color-line: #E2E8F0;
+  --color-ink: #0F172A;
+  --color-muted: #556377;
+  --color-side-text: #B9C6DD;
+  --color-ok: #15803D;
+  --color-ok-bg: #DCFCE7;
+  --color-warn: #B45309;
+  --color-warn-bg: #FEF3C7;
+  --color-bad: #B91C1C;
+  --color-bad-bg: #FEE2E2;
+  --color-info: #1D4ED8;
+  --color-info-bg: #E0ECFF;
+  --color-neutral-pill: #E8ECF3;
+  --color-neutral-pill-text: #3A475B;
+
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 20px rgba(15, 23, 42, .05);
+  --shadow-card-flat: 0 1px 2px rgba(15, 23, 42, .04);
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-page font-sans text-ink antialiased;
+  }
+  h1, h2, h3, h4 { @apply font-display tracking-tight; }
+  :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+}
+
+@utility label-caps {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skeleton { position: relative; overflow: hidden; background: #E5EAF2; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  animation: shimmer 1.4s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+  * { scroll-behavior: auto !important; transition: none !important; }
+}

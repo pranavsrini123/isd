@@ -7,11 +7,12 @@ import { useAuth } from '../../context/AuthContext'
 import { useQuery } from '../../hooks/useQuery'
 import { useRealtime } from '../../hooks/useRealtime'
 import { useDebounce } from '../../hooks/useDebounce'
-import { createRequest, getItemsByIds, getPublicSettings, listInventory } from '../../lib/api'
+import { useInfiniteList } from '../../hooks/useInfiniteList'
+import { createRequest, getItemsByIds, getPublicSettings, listCategories, listInventory } from '../../lib/api'
 import { addDays, toISODate } from '../../lib/format'
 import { hasErrors, validateRequest } from '../../lib/validation'
-import { Badge, Button, Card, EmptyState, InlineError, PageHeader } from '../../components/ui/primitives'
-import { Input, SearchInput, Stepper, Textarea } from '../../components/ui/forms'
+import { Badge, Button, Card, EmptyState, ErrorState, InlineError, PageHeader, Spinner } from '../../components/ui/primitives'
+import { Input, SearchInput, Select, Stepper, Textarea, Toggle } from '../../components/ui/forms'
 import { Modal } from '../../components/ui/Modal'
 import { StockBadge } from '../../components/domain/badges'
 import { Thumb } from '../../components/domain/Thumb'
@@ -65,21 +66,28 @@ export default function NewRequest() {
     }
   }
 
+  // Rendered at the same tree position in both branches below, so adding the
+  // first component (empty → filled page) keeps the picker open with its search.
+  const pickerEl = <ComponentPicker key="picker" open={picker} onClose={() => setPicker(false)} />
+
   if (cart.lines.length === 0) {
     return (
-      <div>
+      <>
+      <div key="empty">
         <PageHeader title="Request components" />
         <Card><EmptyState icon={ShoppingBasket} title="Your request list is empty"
           action={<div className="flex flex-wrap justify-center gap-2"><Button to="/student/projects" icon={FolderKanban}>Start from a project</Button><Button variant="outline" onClick={() => setPicker(true)} icon={Plus}>Add components</Button></div>}>
           Pick a project to pre-fill its parts, or add individual components from the inventory.
         </EmptyState></Card>
-        <ComponentPicker open={picker} onClose={() => setPicker(false)} />
       </div>
+      {pickerEl}
+      </>
     )
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <>
+    <form key="form" onSubmit={submit} noValidate>
       <PageHeader title="Request components" back={cart.projectId ? { to: `/student/projects/${cart.projectId}`, label: cart.projectName } : { to: '/student/inventory', label: 'Inventory' }}
         subtitle={cart.projectName ? `Pre-filled from ${cart.projectName}. Adjust quantities, dates or add more parts.` : 'Choose quantities and dates, then submit for approval.'} />
       {profile.status !== 'active' && <div className="mb-5"><InlineError>Your account is restricted, so new requests cannot be submitted.</InlineError></div>}
@@ -162,31 +170,91 @@ export default function NewRequest() {
           </Card>
         </aside>
       </div>
-      <ComponentPicker open={picker} onClose={() => setPicker(false)} />
     </form>
+    {pickerEl}
+    </>
   )
 }
 
+/**
+ * "Add another component": searchable, filterable, continuously scrolling list of
+ * the inventory. A component already in the request shows its quantity selector
+ * instead of an Add button, so it can never be added twice as separate rows.
+ */
 function ComponentPicker({ open, onClose }) {
   const cart = useCart()
   const [q, setQ] = useState('')
+  const [category, setCategory] = useState('')
+  const [availableOnly, setAvailableOnly] = useState(true)
   const dq = useDebounce(q, 250)
-  const res = useQuery(() => listInventory({ search: dq, stock: '', pageSize: 20 }), [dq], { enabled: open })
-  const inCart = new Set(cart.lines.map((l) => l.item_id))
+  const cats = useQuery(() => listCategories(), [], { enabled: open })
+  const list = useInfiniteList(
+    (offset, limit) => (open
+      ? listInventory({ search: dq, categoryId: category, availableOnly, offset, pageSize: limit })
+      : Promise.resolve({ data: [], count: 0 })),
+    [open, dq, category, availableOnly],
+    { batchSize: 20 },
+  )
+  useRealtime(['inventory_items'], list.refresh, { enabled: open })
+  const inCart = Object.fromEntries(cart.lines.map((l) => [l.item_id, l]))
+  const selectedCount = cart.lines.length
+
   return (
-    <Modal open={open} onClose={onClose} title="Add a component" size="lg">
-      <SearchInput value={q} onChange={setQ} placeholder="Search inventory" />
-      <ul className="mt-4 divide-y divide-line">
-        {(res.data?.data || []).map((i) => (
-          <li key={i.id} className="flex items-center gap-3 py-2.5">
-            <Thumb path={i.image_path} name={i.name} category={i.category_name} className="h-10 w-10" />
-            <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{i.name}</p><p className="text-xs text-muted">{i.available_qty} available</p></div>
-            {inCart.has(i.id) ? <Badge tone="info">Added</Badge>
-              : <Button size="sm" variant="outline" icon={Plus} disabled={i.available_qty === 0} onClick={() => cart.addItem(i, 1)}>{i.available_qty === 0 ? 'Out of stock' : 'Add'}</Button>}
-          </li>
-        ))}
-        {res.data && res.data.data.length === 0 && <li className="py-8 text-center text-sm text-muted">No components found.</li>}
-      </ul>
+    <Modal open={open} onClose={onClose} title="Add components" size="lg"
+      description="Search the inventory and set how many of each you need."
+      footer={<Button onClick={onClose}>Done · {selectedCount} component type{selectedCount === 1 ? '' : 's'} selected</Button>}>
+      <div className="grid gap-3 sm:grid-cols-[1fr_190px]">
+        <SearchInput value={q} onChange={setQ} placeholder="Search by name, brand or model" />
+        <Select aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="All categories"
+          options={(cats.data || []).map((c) => ({ value: c.id, label: c.name }))} />
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <Toggle checked={availableOnly} onChange={setAvailableOnly} label="Only show components in stock" />
+        {list.count !== null && <span className="text-xs text-muted">{list.count} found</span>}
+      </div>
+
+      {list.error && list.items.length === 0 ? <ErrorState error={list.error} onRetry={list.retry} className="!py-8" /> : (
+        <ul className="mt-3 divide-y divide-line">
+          {list.items.map((i) => {
+            const line = inCart[i.id]
+            const out = i.available_qty === 0
+            return (
+              <li key={i.id} className="flex flex-wrap items-center gap-3 py-2.5">
+                <Thumb path={i.image_path} name={i.name} category={i.category_name} className="h-10 w-10" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{i.name}</p>
+                  <p className={out ? 'text-xs font-medium text-bad' : 'text-xs text-muted'}>
+                    {out ? 'Out of stock — cannot be requested right now' : `${i.available_qty} available · ${i.category_name}`}
+                  </p>
+                </div>
+                {line ? (
+                  <div className="flex items-center gap-1">
+                    <Stepper size="sm" value={line.qty} min={1} max={Math.max(1, i.available_qty)} label={`${i.name} quantity`}
+                      onChange={(v) => cart.setQty(i.id, v)} />
+                    <Button size="icon" variant="ghost" aria-label={`Remove ${i.name}`} onClick={() => cart.removeItem(i.id)}><Trash2 className="h-4 w-4 text-bad" /></Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="outline" icon={Plus} disabled={out} onClick={() => cart.addItem(i, 1)}
+                    aria-label={out ? `${i.name} is out of stock` : `Add ${i.name}`}>
+                    {out ? 'Unavailable' : 'Add'}
+                  </Button>
+                )}
+              </li>
+            )
+          })}
+          {list.isInitialLoading && <li className="py-8 text-center"><Spinner label="Loading components" /></li>}
+          {!list.loading && list.items.length === 0 && (
+            <li className="py-8 text-center text-sm text-muted">
+              No components found{availableOnly ? ' in stock' : ''}.{availableOnly && ' Turn off "Only show components in stock" to see everything.'}
+            </li>
+          )}
+        </ul>
+      )}
+      {list.items.length > 0 && (
+        <div ref={list.hasMore ? list.sentinelRef : undefined} className="flex min-h-10 items-center justify-center pt-2">
+          {list.hasMore && (list.loading ? <Spinner label="Loading more" /> : <Button size="sm" variant="ghost" onClick={list.loadMore}>Load more</Button>)}
+        </div>
+      )}
     </Modal>
   )
 }

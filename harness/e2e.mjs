@@ -29,7 +29,12 @@ page.on('console', (m) => { if (m.type() === 'error' && !/favicon|fonts\.googlea
 page.on('pageerror', (e) => consoleErrors.push(`${page.url()} :: PAGEERROR ${e.message}`))
 const shot = async (name, full = true) => { await page.waitForTimeout(500); await page.screenshot({ path: `${SHOTS}/${String(++step).padStart(2, '0')}-${name}.png`, fullPage: full }) }
 const go = async (p) => { await page.goto(BASE + p); await page.waitForLoadState('networkidle') }
-const text = () => page.locator('body').innerText()
+const shelfHits = new Set()
+const text = async () => {
+  const t = await page.locator('body').innerText()
+  if (/shelf/i.test(t)) shelfHits.add(new URL(page.url()).pathname)
+  return t
+}
 
 async function login(email, pw) {
   await go('/login')
@@ -48,6 +53,9 @@ async function logout() {
 await fetch(BASE + '/auth/signup', { method: 'POST', body: JSON.stringify({ email: 'lab.admin@srmist.edu.in', password: 'Admin12345', data: { full_name: 'Lab Admin' } }), headers: { 'content-type': 'application/json' } })
 await fetch(BASE + '/__confirm?email=lab.admin@srmist.edu.in')
 sql("update public.profiles set role='admin' where email='lab.admin@srmist.edu.in'")
+
+// 30 extra items so the student inventory needs more than one batch (24).
+sql("insert into public.inventory_items (name, category_id, total_qty, available_qty, is_demo) select 'Extra Part '||lpad(g::text, 2, '0'), (select id from public.inventory_categories where name = 'Prototyping'), 5, 5, true from generate_series(1, 30) g")
 
 // --- public -----------------------------------------------------------------
 await check('landing renders', async () => { await go('/'); expect((await text()).includes('What can I build?'), 'hero missing'); await shot('landing') })
@@ -93,6 +101,12 @@ await check('student login → dashboard', async () => {
   expect(t.includes('projects ready to build'), 'stat missing')
   await shot('student-dashboard')
 })
+await check('dashboard: no next-build banner, no quick actions', async () => {
+  const t = (await text()).toLowerCase()
+  expect(!t.includes('your next build') && !t.includes('see what you can build'), 'banner still present')
+  expect(!t.includes('quick actions') && !t.includes('browse inventory'), 'quick actions still present')
+  expect(t.includes('recommended projects for you') && t.includes('available components'), 'dashboard content missing')
+})
 await check('student cannot open admin console', async () => {
   await go('/admin/inventory')
   expect((await text()).includes('Administrators only'), 'admin page leaked')
@@ -113,6 +127,49 @@ await check('inventory: search + filter + item modal', async () => {
   expect((await page.getByRole('dialog').innerText()).toLowerCase().includes('used in projects'), 'modal missing')
   await shot('student-item-modal', false)
   await page.getByRole('button', { name: 'Close' }).click()
+})
+await check('inventory: one continuous scroll, no pagination, no duplicates', async () => {
+  await go('/student/inventory')
+  const total = Number(sql('select count(*) from public.inventory_items where not is_archived'))
+  expect(total > 24, 'need more than one batch')
+  expect(await page.getByRole('button', { name: /^(Previous|Next)$/ }).count() === 0, 'pagination buttons present')
+  for (let i = 0; i < 15 && !(await text()).includes('reached the end'); i++) {
+    await page.mouse.wheel(0, 4000)
+    await page.waitForTimeout(500)
+  }
+  const names = await page.getByRole('button', { name: /^View / }).evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')))
+  expect(names.length === total, `showed ${names.length} of ${total}`)
+  expect(new Set(names).size === names.length, 'duplicate cards')
+  expect((await text()).includes('reached the end of the inventory'), 'no end marker')
+  await shot('student-inventory-scrolled', false)
+  // filters still work and reset the list
+  await page.getByLabel('Category').selectOption({ label: 'Sensors' })
+  await page.waitForTimeout(900)
+  const sensors = Number(sql("select count(*) from public.inventory_items i join public.inventory_categories c on c.id = i.category_id where c.name = 'Sensors' and not i.is_archived"))
+  expect(await page.getByRole('button', { name: /^View / }).count() === sensors, 'category filter count wrong')
+})
+await check('toggle: knob stays inside the track in both states (desktop + mobile)', async () => {
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    await go('/student/projects')
+    const sw = page.getByRole('switch').first()
+    const geom = () => sw.evaluate((b) => {
+      const track = b.querySelector('span'); const knob = track.querySelector('span')
+      const t = track.getBoundingClientRect(); const k = knob.getBoundingClientRect()
+      return { t: [t.left, t.right, t.top, t.bottom], k: [k.left, k.right, k.top, k.bottom], on: b.getAttribute('aria-checked') }
+    })
+    const inside = (g) => g.k[0] >= g.t[0] && g.k[1] <= g.t[1] && g.k[2] >= g.t[2] && g.k[3] <= g.t[3]
+    const off = await geom()
+    expect(off.on === 'false' && inside(off) && Math.abs(off.k[0] - off.t[0] - 2) < 1, `off state wrong ${JSON.stringify(off)}`)
+    await sw.click(); await page.waitForTimeout(400)
+    const on = await geom()
+    expect(on.on === 'true' && inside(on) && Math.abs(on.t[1] - on.k[1] - 2) < 1, `on state wrong ${JSON.stringify(on)}`)
+    expect(page.url().includes('buildable=1'), 'state not applied')
+    if (width === 390) await shot('toggle-mobile-on', false)
+    await sw.click(); await page.waitForTimeout(400)
+    expect(inside(await geom()), 'off again wrong')
+  }
+  await page.setViewportSize({ width: 1440, height: 900 })
 })
 await check('project library ranks buildable first', async () => {
   await go('/student/projects')
@@ -149,6 +206,47 @@ await check('request flow from buildable project', async () => {
   expect((await text()).includes('REQ-'), 'request not listed')
   expect(sql("select available_qty from inventory_items where name='DHT11 Temperature & Humidity Sensor'") === before, 'pending request changed stock!')
   await shot('student-my-requests')
+})
+await check('add another component: search, add several, quantity selector, no duplicates', async () => {
+  await go('/student/request')
+  await page.getByRole('button', { name: 'Add components' }).click()
+  const dlg = page.getByRole('dialog')
+  await dlg.getByRole('searchbox').fill('servo')
+  await page.waitForTimeout(800)
+  await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).click()
+  expect(await dlg.getByText('Added').count() === 0, '"Added" badge still shown')
+  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
+  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
+  expect(await dlg.getByLabel('SG90 Micro Servo quantity', { exact: true }).inputValue() === '3', 'stepper did not increase')
+  expect(await dlg.getByRole('button', { name: 'Decrease SG90 Micro Servo quantity' }).isEnabled(), 'minus should be enabled at 3')
+  await dlg.getByRole('searchbox').fill('dht11')
+  await page.waitForTimeout(800)
+  await dlg.getByRole('button', { name: /Add DHT11/ }).click()
+  await shot('student-add-components', false)
+  // out-of-stock items are hidden by default and disabled when shown
+  await dlg.getByRole('searchbox').fill('l298n')
+  await page.waitForTimeout(800)
+  expect((await dlg.innerText()).includes('No components found in stock'), 'out-of-stock not hidden')
+  await dlg.getByRole('switch').click(); await page.waitForTimeout(800)
+  expect(await dlg.getByRole('button', { name: 'L298N Motor Driver is out of stock' }).isDisabled(), 'out-of-stock not disabled')
+  await dlg.getByRole('button', { name: /^Done/ }).click()
+  const t = await text()
+  expect(t.includes('SG90 Micro Servo') && t.includes('DHT11'), 'rows missing')
+  const units = await page.locator('dt:has-text("Total units") + dd').innerText()
+  expect(units === '4', `summary units ${units}`)
+  // adding the same component again updates the existing row instead of duplicating it
+  await page.getByRole('button', { name: 'Add another component' }).click()
+  await dlg.getByRole('searchbox').fill('servo'); await page.waitForTimeout(800)
+  expect(await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).count() === 0, 'could add duplicate')
+  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
+  await dlg.getByRole('button', { name: /^Done/ }).click()
+  expect(await page.getByLabel('SG90 Micro Servo quantity', { exact: true }).count() === 1, 'duplicate row')
+  expect(await page.locator('dt:has-text("Total units") + dd').innerText() === '5', 'summary not updated')
+  await page.getByRole('button', { name: 'Remove DHT11 Temperature & Humidity Sensor' }).click()
+  expect(await page.locator('dt:has-text("Component types") + dd').innerText() === '1', 'remove failed')
+  await shot('student-request-multi', false)
+  await page.getByRole('button', { name: 'Cancel and clear' }).click()
+  await page.waitForTimeout(500)
 })
 await check('request over stock is refused by DB with clear message', async () => {
   await go('/student/inventory?search=nrf24')
@@ -263,7 +361,7 @@ await check('admin inventory: add item, adjust stock, history', async () => {
   const dlg = page.getByRole('dialog')
   await dlg.getByLabel('Name').fill('Demo Logic Analyzer')
   await dlg.getByLabel('Initial quantity').fill('4')
-  await dlg.getByLabel('Storage location').fill('Shelf H1')
+  await dlg.getByLabel('Storage location').fill('Rack H1')
   await dlg.getByRole('button', { name: 'Add item' }).click()
   await page.waitForTimeout(900)
   expect(sql("select available_qty from inventory_items where name='Demo Logic Analyzer'") === '4', 'item not created')
@@ -331,8 +429,11 @@ await check('student sees notifications for approval/issue/return', async () => 
   expect(t.includes('approved') && t.includes('Return verified'), 'notifications missing')
   await shot('student-notifications', false)
 })
-await check('404 page', async () => { await go('/nope'); expect((await text()).includes("isn't on the shelf"), 'no 404') })
+await check('404 page', async () => { await go('/nope'); expect((await text()).includes("We couldn't find that page"), 'no 404') })
 
+await check('no "shelf" wording on any visited page', async () => {
+  expect(shelfHits.size === 0, 'found on ' + [...shelfHits].join(', '))
+})
 await browser.close()
 for (const r of results) console.log(r.join('  '))
 console.log(`\n${results.filter((r) => r[0] === 'PASS').length} passed, ${results.filter((r) => r[0] === 'FAIL').length} failed`)

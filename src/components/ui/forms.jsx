@@ -87,14 +87,30 @@ export function Stepper({ value, onChange, min = 0, max = 999, label, size = 'md
   )
 }
 
-export function Toggle({ checked, onChange, label }) {
+/**
+ * On/off switch. One <button role="switch"> holds both the track and the text,
+ * so the whole control is a single click target with the right accessible name.
+ *
+ * The knob sits in normal flex flow inside a fixed-size track (flex-none, so it
+ * can never be squeezed) and moves with a single transform: 0 when off and
+ * exactly (track inner width − knob width) = 20px when on. It is never
+ * absolutely positioned, so it cannot drift outside the track. (The previous
+ * version positioned the knob absolutely without a left offset, so inside the
+ * centring <button> it started mid-track and overshot when switched on.)
+ */
+export function Toggle({ checked, onChange, label, disabled = false, className }) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-2.5 text-sm font-medium">
-      <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-        className={cx('relative h-6 w-11 rounded-full transition-colors', checked ? 'bg-brand' : 'bg-slate-300')}>
-        <span className={cx('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform', checked ? 'translate-x-[22px]' : 'translate-x-0.5')} />
-      </button>
-      {label}
-    </label>
+    <button type="button" role="switch" aria-checked={!!checked} disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={cx('group inline-flex items-center gap-2.5 rounded-full text-left text-sm font-medium text-ink disabled:cursor-not-allowed disabled:opacity-50', className)}>
+      <span aria-hidden="true"
+        className={cx('inline-flex h-6 w-11 flex-none items-center rounded-full p-0.5 transition-colors duration-200',
+          'group-focus-visible:ring-2 group-focus-visible:ring-brand/40 group-focus-visible:ring-offset-2',
+          checked ? 'bg-brand' : 'bg-slate-300')}>
+        <span className={cx('block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200',
+          checked ? 'translate-x-5' : 'translate-x-0')} />
+      </span>
+      {label && <span>{label}</span>}
+    </button>
   )
 }

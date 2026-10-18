@@ -146,7 +146,7 @@ export default function ProjectDetails() {
                 <p className="font-display text-lg font-bold leading-snug">
                   {r.buildable ? 'You can build this today' : `You can start with ${r.n_satisfied} of ${r.n_required} components`}
                 </p>
-                <p className="text-sm text-muted">{r.buildable ? 'Every part is on the shelf.' : `${missing.length} component type${missing.length === 1 ? ' is' : 's are'} short right now.`}</p>
+                <p className="text-sm text-muted">{r.buildable ? 'Every component is available.' : `${missing.length} component type${missing.length === 1 ? ' is' : 's are'} short right now.`}</p>
               </div>
             </div>
             <div className="mt-5 space-y-3 text-sm">

@@ -19,7 +19,7 @@ function AuthLayout({ children }) {
           <h2 className="text-5xl font-bold leading-tight">Manage.<br />Borrow.<br /><span className="text-cyan">Build.</span><br />Innovate.</h2>
           <p className="mt-5 max-w-sm text-side-text">Your lab, your parts, your next project. All in one place.</p>
           <ul className="mt-8 space-y-3 text-[15px] text-side-text">
-            {['Live availability for every component', 'Projects matched to what is on the shelf', 'Requests, approvals and returns tracked end to end'].map((t) => (
+            {['Live availability for every component', 'Projects matched to the components available', 'Requests, approvals and returns tracked end to end'].map((t) => (
               <li key={t} className="flex gap-2.5"><CheckCircle2 className="mt-0.5 h-5 w-5 flex-none text-cyan" />{t}</li>
             ))}
           </ul>

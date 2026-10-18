@@ -15,9 +15,10 @@ const escapeLike = (s) => s.replace(/[\\%_]/g, (c) => '\\' + c)
 // PostgREST or-filters are comma separated; strip characters that would break the expression.
 const orSafe = (s) => escapeLike(s.trim()).replace(/[,()*]/g, ' ')
 
-function paginate(query, page, pageSize) {
+/** Applies a page window. `offset` (row index) takes precedence over `page` (1-based). */
+function paginate(query, page, pageSize, offset) {
   if (!pageSize) return query
-  const from = (Math.max(1, page || 1) - 1) * pageSize
+  const from = offset != null ? Math.max(0, offset) : (Math.max(1, page || 1) - 1) * pageSize
   return query.range(from, from + pageSize - 1)
 }
 
@@ -54,7 +55,7 @@ export async function deleteCategory(id) {
 
 // ---------------------------------------------------------------- inventory
 export async function listInventory({
-  search = '', categoryId = '', stock = '', archived = false, page = 1, pageSize = 12, sort = 'name',
+  search = '', categoryId = '', stock = '', archived = false, page = 1, pageSize = 12, sort = 'name', offset = null, availableOnly = false,
 } = {}) {
   let q = sb().from('inventory_overview').select('*', { count: 'exact' })
   if (search.trim()) {
@@ -63,11 +64,12 @@ export async function listInventory({
   }
   if (categoryId) q = q.eq('category_id', categoryId)
   if (stock) q = q.eq('stock_status', stock)
+  if (availableOnly) q = q.gt('available_qty', 0)
   if (archived !== null) q = q.eq('is_archived', archived)
   if (sort === 'available') q = q.order('available_qty', { ascending: false })
   else if (sort === 'low') q = q.order('available_qty', { ascending: true })
   q = q.order('name').order('id')
-  return unwrap(await paginate(q, page, pageSize))
+  return unwrap(await paginate(q, page, pageSize, offset))
 }
 export async function getItem(id) {
   return unwrap(await sb().from('inventory_overview').select('*').eq('id', id).maybeSingle())

@@ -4,34 +4,37 @@ import { Boxes, MapPin, Plus, ShoppingBasket } from 'lucide-react'
 import { useQuery } from '../../hooks/useQuery'
 import { useRealtime } from '../../hooks/useRealtime'
 import { useDebounce } from '../../hooks/useDebounce'
+import { useInfiniteList } from '../../hooks/useInfiniteList'
 import { useSearchState } from '../../hooks/useSearchState'
 import { getItemProjects, inventoryTotals, listCategories, listInventory } from '../../lib/api'
 import { formatNumber } from '../../lib/format'
 import { useCart } from '../../context/CartContext'
 import { useToast } from '../../context/ToastContext'
-import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, Pagination, SkeletonCards } from '../../components/ui/primitives'
+import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, SkeletonCards, Spinner } from '../../components/ui/primitives'
 import { SearchInput, Select, Stepper } from '../../components/ui/forms'
 import { Modal } from '../../components/ui/Modal'
 import { StockBadge, DemoBadge } from '../../components/domain/badges'
 import { Thumb } from '../../components/domain/Thumb'
 
-const PAGE_SIZE = 12
+const BATCH = 24
 
 export default function StudentInventory() {
-  const [f, setF] = useSearchState({ search: '', category: '', stock: '', page: 1, sort: 'name' })
+  const [f, setF] = useSearchState({ search: '', category: '', stock: '', sort: 'name' })
   const [searchText, setSearchText] = useState(f.search)
   const debounced = useDebounce(searchText, 300)
   useEffect(() => { if (debounced !== f.search) setF({ search: debounced }) }, [debounced]) // eslint-disable-line react-hooks/exhaustive-deps
-  const [selected, setSelected] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
 
   const cats = useQuery(() => listCategories(), [])
   const totals = useQuery(() => inventoryTotals(), [])
-  const list = useQuery(
-    () => listInventory({ search: f.search, categoryId: f.category, stock: f.stock, page: f.page, pageSize: PAGE_SIZE, sort: f.sort }),
-    [f.search, f.category, f.stock, f.page, f.sort],
+  // One continuous list: batches load automatically as the student scrolls.
+  const list = useInfiniteList(
+    (offset, limit) => listInventory({ search: f.search, categoryId: f.category, stock: f.stock, sort: f.sort, offset, pageSize: limit }),
+    [f.search, f.category, f.stock, f.sort],
+    { batchSize: BATCH },
   )
-  useRealtime(['inventory_items'], () => { list.refetch(); totals.refetch() })
-  const rows = list.data?.data || []
+  useRealtime(['inventory_items'], () => { list.refresh(); totals.refetch() })
+  const rows = list.items
 
   return (
     <div>
@@ -50,7 +53,7 @@ export default function StudentInventory() {
         </div>
       </Card>
 
-      {list.error ? <Card><ErrorState error={list.error} onRetry={list.refetch} /></Card>
+      {list.error && rows.length === 0 ? <Card><ErrorState error={list.error} onRetry={list.retry} /></Card>
         : list.isInitialLoading ? <SkeletonCards count={8} className="h-64" />
         : rows.length === 0 ? (
           <Card><EmptyState icon={Boxes} title="No components match"
@@ -58,12 +61,26 @@ export default function StudentInventory() {
             Try a different search or remove a filter.
           </EmptyState></Card>
         ) : (
-          <div className={`grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 ${list.loading ? 'opacity-70' : ''}`}>
-            {rows.map((item) => <ItemCard key={item.id} item={item} onOpen={() => setSelected(item)} />)}
-          </div>
+          <>
+            <p className="mb-3 text-sm text-muted" aria-live="polite">
+              {list.count === rows.length ? `${list.count} component${list.count === 1 ? '' : 's'}` : `Showing ${rows.length} of ${list.count} components`}
+            </p>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {rows.map((item) => <ItemCard key={item.id} item={item} onOpen={() => setSelectedId(item.id)} />)}
+            </div>
+            <div ref={list.hasMore ? list.sentinelRef : undefined} className="flex min-h-16 items-center justify-center py-6">
+              {list.error ? (
+                <Button variant="outline" size="sm" onClick={list.retry}>Couldn't load more · Try again</Button>
+              ) : list.hasMore ? (
+                list.loading ? <Spinner label="Loading more components" /> : <Button variant="ghost" size="sm" onClick={list.loadMore}>Load more</Button>
+              ) : rows.length > BATCH ? (
+                <p className="text-sm text-muted">You've reached the end of the inventory.</p>
+              ) : null}
+            </div>
+          </>
         )}
-      <Pagination page={f.page} pageSize={PAGE_SIZE} total={list.data?.count} onPage={(page) => setF({ page })} />
-      <ItemModal item={selected} onClose={() => setSelected(null)} />
+      {/* Looked up by id so the modal shows live quantities after a realtime refresh. */}
+      <ItemModal item={rows.find((r) => r.id === selectedId) || null} onClose={() => setSelectedId(null)} />
     </div>
   )
 }

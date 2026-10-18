@@ -24,7 +24,7 @@ inconsistent stock cannot be stored, whatever code runs.
 
 | Bucket | Meaning |
 | --- | --- |
-| available | On the shelf, usable and not promised to anyone. This is the only number readiness uses. |
+| available | In the lab, usable and not promised to anyone. This is the only number readiness uses. |
 | reserved | Promised to an **approved** request but not yet handed over. |
 | borrowed | Issued and not yet verified as returned. |
 | damaged | In the lab but unusable (awaiting repair or write-off). |
@@ -110,7 +110,7 @@ available stock is also the check that the whole project can be supplied at once
 ## Preparing for an AI assistant (optional, later)
 
 The deterministic engine comes first and stays the source of truth. A later assistant (e.g.
-"what can I build with what's on the shelf?") should:
+"what can I build with what's available?") should:
 - run as a Supabase Edge Function holding the model API key server-side;
 - call `get_ranked_projects` and the views **with the student's own JWT**, so RLS still applies;
 - only explain or summarise those results, never invent stock levels or take actions;

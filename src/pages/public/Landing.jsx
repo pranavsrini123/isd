@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/primitives'
 import { useAuth } from '../../context/AuthContext'
 
 const LOOP = [
-  ['Admin', 'Inventory', 'Every part is catalogued with quantity, condition and shelf.', Cpu],
+  ['Admin', 'Inventory', 'Every component is catalogued with quantity, condition and storage location.', Cpu],
   ['System', 'Availability', 'Live counts show what is free right now.', Eye],
   ['System', 'Projects', 'A library of builds, ranked by what you can make today.', FolderKanban],
   ['System', 'Required components', 'Each part is marked ready or missing against live stock.', Search],
@@ -59,7 +59,7 @@ export default function Landing() {
               Manage. Borrow.<br /><span className="bg-gradient-to-r from-cyan to-[#60A5FA] bg-clip-text text-transparent">Build.</span> Innovate.
             </h1>
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-side-text">
-              See what is on the shelf, find out what you can build with it, and borrow it. Every request is approved, tracked and returned in one place.
+              See which components are available, find out what you can build with them, and borrow them. Every request is approved, tracked and returned in one place.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button to={home || '/register'} variant="cyan" size="lg">{home ? 'Open the lab' : 'Get started'} <ArrowRight className="h-4 w-4" /></Button>
@@ -103,8 +103,8 @@ export default function Landing() {
 
       <section id="how" className="mx-auto max-w-7xl scroll-mt-6 px-5 py-20 sm:px-8">
         <p className="label-caps">How the lab works</p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">One loop, from the shelf to your build and back again</h2>
-        <p className="mt-3 max-w-2xl text-muted">Inventory and projects share one database, so every project knows exactly which parts are on the shelf today.</p>
+        <h2 className="mt-2 max-w-2xl text-3xl font-bold sm:text-4xl">One loop, from the lab to your build and back again</h2>
+        <p className="mt-3 max-w-2xl text-muted">Inventory and projects share one database, so every project knows exactly which components are available today.</p>
         <ol className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {LOOP.map(([role, title, text, Icon], i) => (
             <li key={title} className="rounded-[20px] border border-line bg-white p-5 shadow-card">

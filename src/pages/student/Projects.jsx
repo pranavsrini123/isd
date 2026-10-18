@@ -31,7 +31,7 @@ export default function ProjectLibrary() {
 
   return (
     <div>
-      <PageHeader title="Project library" subtitle="Every project shows how many of its parts are on the shelf right now. Buildable projects come first." />
+      <PageHeader title="Project library" subtitle="Every project shows how many of its components are available right now. Buildable projects come first." />
       <Card className="mb-5" padded={false}>
         <div className="grid items-center gap-3 p-4 md:grid-cols-[1fr_170px_170px_190px]">
           <SearchInput value={text} onChange={setText} placeholder="Search projects" />

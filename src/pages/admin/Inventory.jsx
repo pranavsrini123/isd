@@ -186,7 +186,7 @@ function ItemForm({ item, categories, onClose, onSaved }) {
           ? <Input label="Initial quantity" type="number" min={0} value={form.total_qty} onChange={set('total_qty')} error={errors.total_qty} />
           : <div className="rounded-xl bg-slate-50 p-3 text-sm"><p className="text-muted">Stock</p><p className="font-semibold">{item.available_qty} available of {item.total_qty}</p></div>}
         <Input label="Low-stock alert at" type="number" min={0} value={form.low_stock_threshold} onChange={set('low_stock_threshold')} error={errors.low_stock_threshold} hint="Shown as low stock at or below this" />
-        <Input label="Storage location" value={form.storage_location} onChange={set('storage_location')} placeholder="e.g. Shelf B2" maxLength={80} />
+        <Input label="Storage location" value={form.storage_location} onChange={set('storage_location')} placeholder="e.g. Rack B, Bin 2" maxLength={80} />
         <Select label="Condition" value={form.condition} onChange={set('condition')} options={CONDITIONS} />
         <Input label="Asset IDs" value={form.asset_ids} onChange={set('asset_ids')} placeholder="e.g. ISD-MCU-0001..0010" className="sm:col-span-2" maxLength={200} />
         <Textarea label="Description" value={form.description} onChange={set('description')} className="sm:col-span-2" maxLength={4000} />
@@ -226,7 +226,7 @@ const ACTIONS = [
   { value: 'add_stock', label: 'Add new stock', help: 'New units arrived. Increases total and available.', from: null },
   { value: 'remove_available', label: 'Remove from available', help: 'Units taken out of service permanently (e.g. given away).', from: 'available_qty' },
   { value: 'mark_damaged', label: 'Mark available units as damaged', help: 'Moves units from available to damaged.', from: 'available_qty' },
-  { value: 'repair_damaged', label: 'Repaired: damaged → available', help: 'Damaged units fixed and back on the shelf.', from: 'damaged_qty' },
+  { value: 'repair_damaged', label: 'Repaired: damaged → available', help: 'Damaged units have been repaired and are available again.', from: 'damaged_qty' },
   { value: 'write_off_damaged', label: 'Write off damaged units', help: 'Damaged units disposed of. Reduces total.', from: 'damaged_qty' },
   { value: 'recover_lost', label: 'Found: lost → available', help: 'Missing units turned up.', from: 'lost_qty' },
   { value: 'write_off_lost', label: 'Write off lost units', help: 'Stop tracking units that will not come back. Reduces total.', from: 'lost_qty' },

@@ -5,7 +5,7 @@
 --
 --   total_qty = available_qty + reserved_qty + borrowed_qty + damaged_qty + lost_qty
 --
---   available_qty : on the shelf, usable, and not promised to anyone.
+--   available_qty : in the lab, usable, and not promised to anyone.
 --   reserved_qty  : promised to an APPROVED request but not yet handed over.
 --   borrowed_qty  : issued to a student and not yet verified as returned.
 --   damaged_qty   : in the lab but unusable (broken, awaiting repair/write-off).
@@ -321,7 +321,7 @@ as $$
 begin
   if public.is_client_session() then
     if tg_op = 'INSERT' then
-      -- New items start with all stock on the shelf; no other bucket may be set.
+      -- New items start with all stock available; no other bucket may be set.
       new.available_qty := new.total_qty;
       new.reserved_qty := 0;
       new.borrowed_qty := 0;

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { CheckCircle2, Clock, PackageCheck, Undo2 } from 'lucide-react'
+import { CalendarClock, Check, CheckCircle2, Clock, PackageCheck, Undo2, X } from 'lucide-react'
 import { useQuery } from '../../hooks/useQuery'
 import { useRealtime } from '../../hooks/useRealtime'
-import { listRequests, openBorrowingLines, recentReturns, verifyReturn } from '../../lib/api'
+import { listExtensions, listRequests, openBorrowingLines, recentReturns, reviewLoanExtension, verifyReturn } from '../../lib/api'
+import { useSearchState } from '../../hooks/useSearchState'
 import { formatDate, formatDateTime, relativeDue } from '../../lib/format'
 import { validateReturn } from '../../lib/validation'
 import { useToast } from '../../context/ToastContext'
@@ -12,13 +13,17 @@ import { Modal } from '../../components/ui/Modal'
 import { IssueModal } from './Requests'
 
 export default function AdminIssuance() {
-  const [tab, setTab] = useState('loans')
+  const [sp, setSp] = useSearchState({ tab: 'loans' })
+  const tab = sp.tab
+  const setTab = (t) => setSp({ tab: t })
   const [filter, setFilter] = useState('all')
   const [q, setQ] = useState('')
   const approved = useQuery(() => listRequests({ status: 'approved', pageSize: 100 }), [])
   const open = useQuery(() => openBorrowingLines(), [])
   const recent = useQuery(() => recentReturns(30), [])
-  useRealtime(['borrow_requests', 'borrowings', 'return_records'], () => { approved.refetch(); open.refetch(); recent.refetch() })
+  const exts = useQuery(() => listExtensions({ status: 'pending' }), [])
+  useRealtime(['borrow_requests', 'borrowings', 'return_records', 'loan_extension_requests'], () => { approved.refetch(); open.refetch(); recent.refetch(); exts.refetch() })
+  const pendingExtByLoan = Object.fromEntries((exts.data || []).map((e) => [e.borrowing_id, e]))
   const [issuing, setIssuing] = useState(null)
   const [verifying, setVerifying] = useState(null)
 
@@ -39,6 +44,7 @@ export default function AdminIssuance() {
       <Tabs className="mb-5" value={tab} onChange={setTab} tabs={[
         { value: 'issue', label: 'Ready to issue', count: approvedRows.length },
         { value: 'loans', label: 'On loan / verify returns', count: new Set((open.data || []).map((l) => l.borrowing_id)).size },
+        { value: 'extensions', label: 'Extension requests', count: (exts.data || []).length },
         { value: 'recent', label: 'Recently verified' },
       ]} />
 
@@ -90,6 +96,7 @@ export default function AdminIssuance() {
                       <span className="text-xs text-muted">{g.borrower_srm_id || g.borrower_email}</span>
                       <span className="flex-1" />
                       {g.return_requested_at && <Badge tone="info">Return requested {formatDate(g.return_requested_at)}</Badge>}
+                      {pendingExtByLoan[g.borrowing_id] && <button onClick={() => setTab('extensions')}><Badge tone="warn"><CalendarClock className="h-3 w-3" />Extension requested</Badge></button>}
                       <Badge tone={g.is_overdue ? 'bad' : 'neutral'}><Clock className="h-3 w-3" />{relativeDue(g.due_date)}</Badge>
                     </div>
                     <ul className="divide-y divide-line">
@@ -107,6 +114,8 @@ export default function AdminIssuance() {
             )}
         </>
       )}
+
+      {tab === 'extensions' && <ExtensionQueue q={exts} onChanged={() => { exts.refetch(); open.refetch() }} />}
 
       {tab === 'recent' && (
         <Card padded={false}>
@@ -170,5 +179,48 @@ function VerifyModal({ line, onClose, onDone }) {
         <p className="text-xs text-muted">Each line can only be verified once. Stock is updated immediately.</p>
       </div>
     </Modal>
+  )
+}
+
+function ExtensionQueue({ q, onChanged }) {
+  const toast = useToast()
+  const [rejecting, setRejecting] = useState(null)
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(null)
+  async function review(e, approve, reason) {
+    setBusy(e.id)
+    try {
+      await reviewLoanExtension(e.id, approve, reason)
+      toast.success(approve ? `${e.request_code} now due ${formatDate(e.requested_due_date)}` : `Extension for ${e.request_code} declined`)
+      setRejecting(null); setNote('')
+      onChanged()
+    } catch (err) { toast.error(err) } finally { setBusy(null) }
+  }
+  if (q.error) return <Card><ErrorState error={q.error} onRetry={q.refetch} /></Card>
+  if (q.isInitialLoading) return <Card padded={false}><SkeletonRows /></Card>
+  if (!(q.data || []).length) return <Card><EmptyState icon={CalendarClock} title="No extension requests">When a student asks for more time on a loan, it appears here for approval.</EmptyState></Card>
+  return (
+    <div className="space-y-3">
+      {q.data.map((e) => (
+        <Card key={e.id} className="!p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="font-mono text-sm font-semibold">{e.request_code} <span className="font-sans font-medium">· {e.borrower_name}</span></p>
+              <p className="mt-1 text-sm">Due <strong>{formatDate(e.current_due_date)}</strong> → requested <strong>{formatDate(e.requested_due_date)}</strong></p>
+              <p className="mt-1 text-sm text-muted">“{e.reason}”</p>
+              <p className="mt-1 text-xs text-muted">Asked {formatDateTime(e.created_at)} · issued {formatDate(e.issued_at)}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="success" icon={Check} loading={busy === e.id} onClick={() => review(e, true)}>Approve</Button>
+              <Button size="sm" variant="danger-outline" icon={X} onClick={() => { setRejecting(e); setNote('') }}>Decline</Button>
+            </div>
+          </div>
+        </Card>
+      ))}
+      <Modal open={!!rejecting} onClose={() => setRejecting(null)} title={`Decline extension for ${rejecting?.request_code}`} size="sm"
+        footer={<><Button variant="outline" onClick={() => setRejecting(null)}>Back</Button><Button variant="danger" loading={busy === rejecting?.id} onClick={() => review(rejecting, false, note)}>Decline</Button></>}>
+        <Textarea label="Reason for the student" value={note} onChange={(ev) => setNote(ev.target.value)} rows={3} maxLength={500} required />
+      </Modal>
+    </div>
   )
 }

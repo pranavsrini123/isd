@@ -28,6 +28,7 @@ The browser only ever holds the public anon key and the user's own session.
 | `project_components` | when the parent project is visible | admins | |
 | `borrow_requests`, `request_items` | the requester; admins | nobody | Created by `create_borrow_request`; status changes only through the workflow functions. |
 | `borrowings`, `borrowing_items`, `return_records` | the borrower; admins | nobody | Created only by `issue_request` and `verify_return`. |
+| `loan_extension_requests` | the borrower; admins | nobody (`request_loan_extension`, `cancel_loan_extension`, `review_loan_extension`) | The due date in `borrowings` changes only inside `review_loan_extension` after an admin approves. |
 | `notifications` | the recipient only | nobody (`mark_notifications_read` for read state) | |
 | `activity_logs` | admins | nobody | Append-only, written by functions and audit triggers. |
 | `storage.objects` (`lab-images`) | public read | admins only | Images are not sensitive. Bucket limits: 2 MB, JPG/PNG/WebP. |

@@ -34,17 +34,28 @@ for (const [pkg, file] of [['lucide-react', 'lucide-react.js'], ['recharts', 're
   const gen = `import { make } from './${file}'\n` + importedNames(pkg).map((n) => `export const ${n} = make('${n}')`).join('\n') + '\n'
   fs.writeFileSync(shim(`_${file.replace('.js', '')}.gen.js`), gen)
 }
+// If REAL_MODULES points at a node_modules folder copied from a real `npm install`,
+// bundle the genuine react / react-router / lucide-react / recharts packages and
+// shim only the Supabase client (which must talk to server.mjs).
+const REAL = process.env.REAL_MODULES
+const alias = REAL
+  ? {
+      '@supabase/supabase-js': shim('supabase-js.js'),
+      'lucide-react': path.join(REAL, 'lucide-react/dist/cjs/lucide-react.js'),
+    }
+  : {
+      'react-router-dom': shim('react-router-dom.js'),
+      '@supabase/supabase-js': shim('supabase-js.js'),
+      'lucide-react': shim('_lucide-react.gen.js'),
+      recharts: shim('_recharts.gen.js'),
+    }
+if (REAL) console.log('using real packages from', REAL)
 const result = await esbuild.build({
   entryPoints: [path.join(ROOT, 'src/main.jsx')],
   bundle: true, splitting: true, format: 'esm', outdir: path.join(OUT, 'assets'),
   jsx: 'automatic', loader: { '.js': 'jsx', '.css': 'empty' }, sourcemap: true, logLevel: 'warning',
-  nodePaths: [TOOLS], metafile: true,
-  alias: {
-    'react-router-dom': shim('react-router-dom.js'),
-    '@supabase/supabase-js': shim('supabase-js.js'),
-    'lucide-react': shim('_lucide-react.gen.js'),
-    recharts: shim('_recharts.gen.js'),
-  },
+  nodePaths: REAL ? [REAL] : [TOOLS], metafile: true,
+  alias,
   // CSS is compiled separately by Tailwind below.
   define: {
     'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(API),

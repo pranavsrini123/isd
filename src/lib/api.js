@@ -275,3 +275,19 @@ export async function getItemsByIds(ids) {
   if (!ids.length) return []
   return unwrap(await sb().from('inventory_overview').select('*').in('id', ids))
 }
+
+// ---------------------------------------------------------------- loan extensions
+export const requestLoanExtension = (borrowingId, newDueDate, reason) =>
+  rpc('request_loan_extension', { p_borrowing_id: borrowingId, p_new_due_date: newDueDate, p_reason: reason })
+export const cancelLoanExtension = (id) => rpc('cancel_loan_extension', { p_extension_id: id })
+export const reviewLoanExtension = (id, approve, note) =>
+  rpc('review_loan_extension', { p_extension_id: id, p_approve: approve, p_note: note || null })
+export async function myExtensions(userId) {
+  return unwrap(await sb().from('loan_extension_overview').select('*').eq('borrower_id', userId)
+    .order('created_at', { ascending: false }))
+}
+export async function listExtensions({ status = 'pending' } = {}) {
+  let q = sb().from('loan_extension_overview').select('*')
+  if (status) q = q.eq('status', status)
+  return unwrap(await q.order('created_at', { ascending: status === 'pending' }).limit(100))
+}

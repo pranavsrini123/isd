@@ -36,6 +36,17 @@ const text = async () => {
   return t
 }
 
+// Calls a database function as a given user through the harness API (same path the app uses).
+async function rpcAs(uid, fn, args) {
+  const r = await fetch(BASE + '/rpc', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + uid }, body: JSON.stringify({ fn, args }) })
+  const j = await r.json()
+  if (j.error) throw new Error(`${fn}: ${j.error.message}`)
+  return j.data
+}
+const uidOf = (email) => sql(`select id from public.profiles where email = '${email}'`)
+const ymd = (d) => d.toISOString().slice(0, 10)
+const labToday = () => sql('select public.lab_today()')
+
 async function login(email, pw) {
   await go('/login')
   await page.getByLabel('SRM email').fill(email)
@@ -76,7 +87,7 @@ await check('register student → verify email page', async () => {
   await page.getByLabel('Full name').fill('Demo Student')
   await page.getByRole('button', { name: 'Create account' }).click()
   await page.waitForURL('**/verify-email')
-  expect((await text()).includes('Check your inbox'), 'verify page missing')
+  await page.getByText('Check your inbox').waitFor()
   await shot('verify-email', false)
 })
 await check('unverified login is refused', async () => {
@@ -207,46 +218,68 @@ await check('request flow from buildable project', async () => {
   expect(sql("select available_qty from inventory_items where name='DHT11 Temperature & Humidity Sensor'") === before, 'pending request changed stock!')
   await shot('student-my-requests')
 })
-await check('add another component: search, add several, quantity selector, no duplicates', async () => {
+await check('add components end-to-end: add A and B, +A, −B, remove one, submit, saved exactly', async () => {
   await go('/student/request')
   await page.getByRole('button', { name: 'Add components' }).click()
   const dlg = page.getByRole('dialog')
-  await dlg.getByRole('searchbox').fill('servo')
-  await page.waitForTimeout(800)
-  await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).click()
-  expect(await dlg.getByText('Added').count() === 0, '"Added" badge still shown')
-  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
-  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
-  expect(await dlg.getByLabel('SG90 Micro Servo quantity', { exact: true }).inputValue() === '3', 'stepper did not increase')
-  expect(await dlg.getByRole('button', { name: 'Decrease SG90 Micro Servo quantity' }).isEnabled(), 'minus should be enabled at 3')
-  await dlg.getByRole('searchbox').fill('dht11')
-  await page.waitForTimeout(800)
-  await dlg.getByRole('button', { name: /Add DHT11/ }).click()
-  await shot('student-add-components', false)
-  // out-of-stock items are hidden by default and disabled when shown
-  await dlg.getByRole('searchbox').fill('l298n')
-  await page.waitForTimeout(800)
+  const find = async (q) => { await dlg.getByRole('searchbox').fill(q); await page.waitForTimeout(800) }
+  await find('servo')
+  await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).click()                       // A
+  expect(await dlg.getByText('Added', { exact: true }).count() === 0, '"Added" badge still shown')
+  expect(await dlg.getByLabel('SG90 Micro Servo quantity', { exact: true }).inputValue() === '1', 'A not at 1')
+  expect(await dlg.getByRole('button', { name: 'Decrease SG90 Micro Servo quantity' }).isDisabled(), 'minus must be disabled at 1')
+  await find('dht11')
+  await dlg.getByRole('button', { name: /^Add DHT11/ }).click()                                   // B
+  await find('breadboard')
+  await dlg.getByRole('button', { name: 'Add 830-point Breadboard' }).click()                    // C (to remove later)
+  // out-of-stock items: hidden by default, disabled with an explanation when shown
+  await find('l298n')
   expect((await dlg.innerText()).includes('No components found in stock'), 'out-of-stock not hidden')
   await dlg.getByRole('switch').click(); await page.waitForTimeout(800)
   expect(await dlg.getByRole('button', { name: 'L298N Motor Driver is out of stock' }).isDisabled(), 'out-of-stock not disabled')
+  expect((await dlg.innerText()).includes('Out of stock — cannot be requested right now'), 'no explanation')
+  await dlg.getByRole('switch').click(); await page.waitForTimeout(500)
+  await shot('student-add-components', false)
   await dlg.getByRole('button', { name: /^Done/ }).click()
-  const t = await text()
-  expect(t.includes('SG90 Micro Servo') && t.includes('DHT11'), 'rows missing')
-  const units = await page.locator('dt:has-text("Total units") + dd').innerText()
-  expect(units === '4', `summary units ${units}`)
-  // adding the same component again updates the existing row instead of duplicating it
+
+  const val = (n) => page.getByLabel(`${n} quantity`, { exact: true }).inputValue()
+  const summary = async () => [await page.locator('dt:has-text("Component types") + dd').innerText(), await page.locator('dt:has-text("Total units") + dd').innerText()]
+  expect(JSON.stringify(await summary()) === '["3","3"]', 'summary after adding 3: ' + JSON.stringify(await summary()))
+  await page.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()          // +A → 2
+  await page.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()          // +A → 3
+  await page.getByRole('button', { name: /^Increase DHT11/ }).click()                            // B → 2
+  await page.getByRole('button', { name: /^Decrease DHT11/ }).click()                            // −B → 1
+  expect(await val('SG90 Micro Servo') === '3', 'A not 3')
+  expect(await page.getByLabel(/^DHT11.*quantity$/).inputValue() === '1', 'B not 1')
+  // adding A again from the picker must not create a second row
   await page.getByRole('button', { name: 'Add another component' }).click()
-  await dlg.getByRole('searchbox').fill('servo'); await page.waitForTimeout(800)
-  expect(await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).count() === 0, 'could add duplicate')
-  await dlg.getByRole('button', { name: 'Increase SG90 Micro Servo quantity' }).click()
+  await find('servo')
+  expect(await dlg.getByRole('button', { name: 'Add SG90 Micro Servo' }).count() === 0, 'duplicate add possible')
   await dlg.getByRole('button', { name: /^Done/ }).click()
   expect(await page.getByLabel('SG90 Micro Servo quantity', { exact: true }).count() === 1, 'duplicate row')
-  expect(await page.locator('dt:has-text("Total units") + dd').innerText() === '5', 'summary not updated')
-  await page.getByRole('button', { name: 'Remove DHT11 Temperature & Humidity Sensor' }).click()
-  expect(await page.locator('dt:has-text("Component types") + dd').innerText() === '1', 'remove failed')
+  await page.getByRole('button', { name: 'Remove 830-point Breadboard' }).click()                 // remove C
+  expect(JSON.stringify(await summary()) === '["2","4"]', 'summary after edits: ' + JSON.stringify(await summary()))
+  await page.getByLabel('Project or purpose').fill('Servo and sensor test rig')
   await shot('student-request-multi', false)
-  await page.getByRole('button', { name: 'Cancel and clear' }).click()
-  await page.waitForTimeout(500)
+  await page.getByRole('button', { name: 'Submit request' }).click()
+  await page.waitForURL('**/student/requests**')
+  const saved = sql("select string_agg(i.name || '=' || ri.qty, ';' order by i.name) from public.request_items ri join public.inventory_items i on i.id = ri.item_id join public.borrow_requests r on r.id = ri.request_id where r.purpose = 'Servo and sensor test rig'")
+  expect(saved === 'DHT11 Temperature & Humidity Sensor=1;SG90 Micro Servo=3', 'saved request: ' + saved)
+})
+await check('my requests: no Cancelled tab, no Latest Request timeline (also after refresh / new request)', async () => {
+  await go('/student/requests')
+  const tabs = await page.getByRole('tab').allInnerTexts()
+  const names = tabs.map((t) => t.replace(/\d+/g, '').trim())
+  expect(JSON.stringify(names) === JSON.stringify(['All', 'Pending', 'Approved', 'Issued', 'Returned', 'Rejected', 'On loan']), 'tabs: ' + JSON.stringify(names))
+  for (let i = 0; i < 2; i++) {
+    const t = (await text()).toLowerCase()
+    expect(!t.includes('latest request') && !t.includes('admin review'), 'timeline present (pass ' + i + ')')
+    await page.reload(); await page.waitForTimeout(900)
+  }
+  // each component is its own row inside the request card
+  const card = page.locator('[data-request]').first()
+  expect(await card.locator('li').count() >= 2, 'components not listed individually')
+  await shot('student-my-requests-list')
 })
 await check('request over stock is refused by DB with clear message', async () => {
   await go('/student/inventory?search=nrf24')
@@ -351,7 +384,7 @@ await check('verify the rest; borrowing closes; request returned', async () => {
     await page.getByRole('button', { name: 'Confirm verification' }).click()
     await page.waitForTimeout(800)
   }
-  expect(sql("select status from borrow_requests limit 1") === 'returned', 'not returned')
+  expect(sql("select status from borrow_requests order by created_at limit 1") === 'returned', 'not returned')
   expect(sql('select count(*) from inventory_items where total_qty<>available_qty+reserved_qty+borrowed_qty+damaged_qty+lost_qty') === '0', 'invariant broken')
 })
 await check('admin inventory: add item, adjust stock, history', async () => {
@@ -409,6 +442,97 @@ await check('reports + activity + settings render', async () => {
   expect(t.includes('Approved request') && t.includes('Lab Admin'), 'activity missing'); await shot('admin-activity')
   await go('/admin/settings'); await page.waitForTimeout(600)
   expect((await text()).includes('srmist.edu.in'), 'settings missing'); await shot('admin-settings', false)
+})
+// ---- status → action mapping on My requests, with real data in every state ----
+const STU = 'demo.student@srmist.edu.in'
+let ids = {}
+await check('setup: requests in every status (pending, approved, issued, rejected)', async () => {
+  const s = uidOf(STU), a = uidOf('lab.admin@srmist.edu.in')
+  const item = (n) => sql(`select id from public.inventory_items where name = '${n}'`)
+  const today = labToday()
+  const until = sql(`select (public.lab_today() + 3)::text`)
+  const mk = (purpose, name, qty = 1) => rpcAs(s, 'create_borrow_request', { p_project_id: null, p_purpose: purpose, p_note: null, p_needed_from: today, p_needed_until: until, p_items: [{ item_id: item(name), qty }] })
+  ids.approved = await mk('Approved state', 'HC-05 Bluetooth Module')
+  ids.issued = await mk('Issued state', 'Soil Moisture Sensor', 2)
+  ids.rejected = await mk('Rejected state', 'MPU6050 Accelerometer/Gyro', 2)
+  await rpcAs(a, 'approve_request', { p_request_id: ids.approved })
+  await rpcAs(a, 'approve_request', { p_request_id: ids.issued })
+  await rpcAs(a, 'issue_request', { p_request_id: ids.issued, p_due_date: until })
+  await rpcAs(a, 'reject_request', { p_request_id: ids.rejected, p_reason: 'Out of stock at review' })
+  for (const k of Object.keys(ids)) ids[k] = sql(`select request_code from public.borrow_requests where id = '${ids[k]}'`)
+  ids.pending = sql("select request_code from public.borrow_requests where purpose = 'Servo and sensor test rig'")
+})
+const cardButtons = async (code) => (await page.locator(`[data-request="${code}"] button`).allInnerTexts()).map((t) => t.trim()).filter(Boolean)
+await check('status → actions: Pending/Approved Cancel, Issued Return+Extend, Rejected Request again, On loan Request return', async () => {
+  await logout()
+  await login(STU, 'Student123')
+  await go('/student/requests')
+  const want = { pending: ['Cancel request'], approved: ['Cancel request'], issued: ['Return', 'Extend'], rejected: ['Request again'] }
+  for (const [state, buttons] of Object.entries(want)) {
+    const got = await cardButtons(ids[state])
+    expect(JSON.stringify(got) === JSON.stringify(buttons), `${state} ${ids[state]}: ${JSON.stringify(got)}`)
+  }
+  const returned = sql("select request_code from public.borrow_requests where status = 'returned' limit 1")
+  expect((await cardButtons(returned)).length === 0, 'returned should have no actions')
+  await shot('student-requests-actions')
+  await page.getByRole('tab', { name: /On loan/ }).click(); await page.waitForTimeout(500)
+  const loanBtns = (await page.locator(`[data-loan="${ids.issued}"] button`).allInnerTexts()).map((t) => t.trim())
+  expect(JSON.stringify(loanBtns) === '["Request return"]', 'on loan: ' + JSON.stringify(loanBtns))
+  await page.getByRole('tab', { name: /^All/ }).click(); await page.waitForTimeout(400)
+})
+await check('Extend: student requests → due date unchanged until admin approves → then moves', async () => {
+  const before = sql(`select b.due_date from public.borrowings b join public.borrow_requests r on r.id = b.request_id where r.request_code = '${ids.issued}'`)
+  await page.locator(`[data-request="${ids.issued}"]`).getByRole('button', { name: 'Extend' }).click()
+  const dlg = page.getByRole('dialog')
+  await dlg.getByLabel('Reason').fill('Project demo moved to next week')
+  await shot('student-extend-modal', false)
+  await dlg.getByRole('button', { name: 'Request extension' }).click()
+  await page.waitForTimeout(900)
+  expect(sql(`select count(*) from public.loan_extension_requests where status = 'pending'`) === '1', 'no pending extension')
+  expect(sql(`select b.due_date from public.borrowings b join public.borrow_requests r on r.id = b.request_id where r.request_code = '${ids.issued}'`) === before, 'due date changed before approval')
+  expect((await page.locator(`[data-request="${ids.issued}"]`).innerText()).includes('waiting for approval'), 'pending state not shown')
+  expect(await page.locator(`[data-request="${ids.issued}"]`).getByRole('button', { name: 'Extend' }).isDisabled(), 'extend should be disabled while pending')
+  await logout()
+  await login('lab.admin@srmist.edu.in', 'Admin12345')
+  await go('/admin/issuance?tab=extensions')
+  await shot('admin-extension-queue', false)
+  await page.getByRole('button', { name: 'Approve' }).click(); await page.waitForTimeout(900)
+  const after = sql(`select b.due_date from public.borrowings b join public.borrow_requests r on r.id = b.request_id where r.request_code = '${ids.issued}'`)
+  expect(after > before, `due date ${before} → ${after}`)
+  await logout()
+  await login(STU, 'Student123')
+})
+await check('Return on an Issued card requests a return (no stock change until verified)', async () => {
+  await go('/student/requests')
+  const stock = sql("select available_qty || '/' || borrowed_qty from public.inventory_items where name = 'Soil Moisture Sensor'")
+  await page.locator(`[data-request="${ids.issued}"]`).getByRole('button', { name: 'Return' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Request return' }).click()
+  await page.waitForTimeout(900)
+  expect(sql(`select (b.return_requested_at is not null)::text from public.borrowings b join public.borrow_requests r on r.id = b.request_id where r.request_code = '${ids.issued}'`) === 'true', 'return not requested')
+  expect(sql("select available_qty || '/' || borrowed_qty from public.inventory_items where name = 'Soil Moisture Sensor'") === stock, 'stock moved before verification')
+  const card = page.locator(`[data-request="${ids.issued}"]`)
+  expect((await card.innerText()).includes('Return requested'), 'pending verification not shown')
+  expect(await card.getByRole('button', { name: 'Return' }).isDisabled(), 'return should be disabled after request')
+})
+await check('Cancel on Pending: request cancelled, still listed under All, no Cancelled tab', async () => {
+  await page.locator(`[data-request="${ids.approved}"]`).getByRole('button', { name: 'Cancel request' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Cancel request' }).click()
+  await page.waitForTimeout(900)
+  expect(sql(`select status from public.borrow_requests where request_code = '${ids.approved}'`) === 'cancelled', 'not cancelled')
+  expect(await page.locator(`[data-request="${ids.approved}"]`).count() === 1, 'cancelled request vanished from All')
+  expect(await page.getByRole('tab', { name: /Cancelled/ }).count() === 0, 'Cancelled tab present')
+})
+await check('Request again on Rejected: new request with same components; rejected one unchanged', async () => {
+  await page.locator(`[data-request="${ids.rejected}"]`).getByRole('button', { name: 'Request again' }).click()
+  await page.waitForURL('**/student/request')
+  await page.waitForTimeout(800)
+  expect(await page.getByLabel('MPU6050 Accelerometer/Gyro quantity', { exact: true }).inputValue() === '2', 'components not prefilled')
+  expect(await page.getByLabel('Project or purpose').inputValue() === 'Rejected state', 'purpose not prefilled')
+  await page.getByRole('button', { name: 'Submit request' }).click()
+  await page.waitForURL('**/student/requests**'); await page.waitForTimeout(600)
+  expect(sql("select count(*) from public.borrow_requests where purpose = 'Rejected state'") === '2', 'no new request')
+  expect(sql(`select status from public.borrow_requests where request_code = '${ids.rejected}'`) === 'rejected', 'rejected record modified')
+  expect(!(await text()).toLowerCase().includes('latest request'), 'timeline appeared after new request')
 })
 await check('mobile layout: student dashboard', async () => {
   await logout()

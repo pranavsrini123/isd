@@ -38,6 +38,7 @@ to Vercel.
 | Workflow functions (request, approve, issue, return, adjust), reports | `supabase/migrations/0003_functions.sql` |
 | Row level security and grants | `supabase/migrations/0004_rls_and_grants.sql` |
 | Image bucket and Realtime | `supabase/migrations/0005_storage_realtime.sql` |
+| Loan extension requests (student asks, admin approves) | `supabase/migrations/0006_loan_extensions.sql` |
 | Demo data (flagged `is_demo`) | `supabase/seed.sql` |
 | Data access (the only module that calls Supabase) | `src/lib/api.js` |
 | Student pages / admin pages | `src/pages/student`, `src/pages/admin` |

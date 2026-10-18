@@ -5,14 +5,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 // the database when the request is submitted and approved.
 const CartContext = createContext(null)
 const KEY = 'isdlab.cart.v1'
+const EMPTY = { lines: [], projectId: null, projectName: null, purpose: null }
 
 function load() {
   try {
     const raw = sessionStorage.getItem(KEY)
     const parsed = raw ? JSON.parse(raw) : null
-    return parsed && Array.isArray(parsed.lines) ? parsed : { lines: [], projectId: null, projectName: null }
+    return parsed && Array.isArray(parsed.lines) ? parsed : EMPTY
   } catch {
-    return { lines: [], projectId: null, projectName: null }
+    return EMPTY
   }
 }
 
@@ -40,17 +41,31 @@ export function CartProvider({ children }) {
   /** Starts a request for a project's full component list. */
   const loadProject = useCallback((project, components) => {
     setCart({
+      purpose: null,
       projectId: project.id,
       projectName: project.name,
       lines: components.map((c) => ({ item_id: c.item_id, name: c.item_name, qty: c.qty_required })),
     })
   }, [])
-  const clear = useCallback(() => setCart({ lines: [], projectId: null, projectName: null }), [])
+  /**
+   * "Request again" for a rejected request: copies its components, quantities and
+   * purpose into a NEW draft. The old request is never modified; stock and dates
+   * are re-checked on the request page and again by the database on submit.
+   */
+  const loadRequest = useCallback((r) => {
+    setCart({
+      projectId: r.project_name ? r.project_id : null,
+      projectName: r.project_name || null,
+      purpose: r.purpose || null,
+      lines: (r.items || []).map((i) => ({ item_id: i.item_id, name: i.name, qty: i.qty })),
+    })
+  }, [])
+  const clear = useCallback(() => setCart(EMPTY), [])
   const clearProject = useCallback(() => setCart((c) => ({ ...c, projectId: null, projectName: null })), [])
 
   const value = useMemo(() => ({
-    ...cart, count: cart.lines.length, addItem, setQty, removeItem, loadProject, clear, clearProject,
-  }), [cart, addItem, setQty, removeItem, loadProject, clear, clearProject])
+    ...cart, count: cart.lines.length, addItem, setQty, removeItem, loadProject, loadRequest, clear, clearProject,
+  }), [cart, addItem, setQty, removeItem, loadProject, loadRequest, clear, clearProject])
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 

@@ -16,3 +16,16 @@ folder contains:
 
 None of this is used by `npm run dev` / `npm run build` / Vercel. In a normal
 environment just run `npm install && npm run dev` against a Supabase project.
+
+## Running against the real packages
+
+Copy a `node_modules` folder from a real `npm install` (the JavaScript packages
+only) and point the build at it:
+
+```bash
+REAL_MODULES=/path/to/node_modules node harness/build.mjs
+```
+
+The bundle then uses the genuine React, React Router, lucide-react and Recharts;
+only `@supabase/supabase-js` is still replaced, because the harness server is not
+a Supabase instance.

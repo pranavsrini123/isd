@@ -39,6 +39,7 @@ inconsistent stock cannot be stored, whatever code runs.
 | Admin rejects / anyone cancels an approved request | `reject_request` / `cancel_borrow_request` | rejected / cancelled | reserved → available |
 | Admin issues | `issue_request` | issued | reserved → borrowed; creates the borrowing and its lines |
 | Student asks to return | `request_return` | issued | none (flags the loan for verification) |
+| Student asks for more time | `request_loan_extension` | issued | none; due date changes only when an admin approves (`review_loan_extension`). Total loan ≤ `max_loan_days`, one pending request per loan |
 | Admin verifies each line | `verify_return(good, damaged, missing)` | returned once every line is verified | borrowed → available / damaged / lost |
 | Admin adjusts | `adjust_inventory(action, qty, reason)` | | add stock, remove, mark damaged, repair, write off, recover lost |
 

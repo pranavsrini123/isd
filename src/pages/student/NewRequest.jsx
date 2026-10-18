@@ -31,14 +31,14 @@ export default function NewRequest() {
   const stock = useMemo(() => Object.fromEntries((live.data || []).map((i) => [i.id, i])), [live.data])
 
   const [form, setForm] = useState({
-    purpose: cart.projectName ? `Building: ${cart.projectName}` : '',
+    purpose: cart.purpose || (cart.projectName ? `Building: ${cart.projectName}` : ''),
     note: '',
     neededFrom: today,
     neededUntil: addDays(today, 7),
   })
   useEffect(() => {
-    if (cart.projectName && !form.purpose) setForm((f) => ({ ...f, purpose: `Building: ${cart.projectName}` }))
-  }, [cart.projectName]) // eslint-disable-line react-hooks/exhaustive-deps
+    if (!form.purpose && (cart.purpose || cart.projectName)) setForm((f) => ({ ...f, purpose: cart.purpose || `Building: ${cart.projectName}` }))
+  }, [cart.projectName, cart.purpose]) // eslint-disable-line react-hooks/exhaustive-deps
   const [errors, setErrors] = useState({})
   const [serverError, setServerError] = useState('')
   const [pending, setPending] = useState(false)

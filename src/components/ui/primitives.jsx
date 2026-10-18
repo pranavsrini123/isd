@@ -6,14 +6,17 @@ import { usePortal } from './portal'
 export const cx = (...c) => c.filter(Boolean).join(' ')
 
 // ------------------------------------------------------------------ Button
+// Outline variants set their own border colour; the others use a transparent border so
+// every variant has the same box size. (Previously a shared 'border-transparent'
+// overrode the outline colours, so outline buttons rendered with no visible border.)
 const BTN = {
-  primary: 'bg-brand text-white hover:bg-brand-dark disabled:bg-brand/50',
-  cyan: 'bg-cyan text-[#06142E] hover:bg-cyan-light disabled:opacity-50',
+  primary: 'border-transparent bg-brand text-white hover:bg-brand-dark disabled:bg-brand/50',
+  cyan: 'border-transparent bg-cyan text-[#06142E] hover:bg-cyan-light disabled:opacity-50',
   outline: 'bg-white border-[#CBD5E1] text-ink hover:bg-slate-50 disabled:opacity-50',
-  ghost: 'bg-transparent text-ink hover:bg-slate-100 disabled:opacity-50',
-  danger: 'bg-bad text-white hover:bg-red-800 disabled:opacity-50',
+  ghost: 'border-transparent bg-transparent text-ink hover:bg-slate-100 disabled:opacity-50',
+  danger: 'border-transparent bg-bad text-white hover:bg-red-800 disabled:opacity-50',
   'danger-outline': 'bg-white border-bad/40 text-bad hover:bg-bad-bg disabled:opacity-50',
-  success: 'bg-ok text-white hover:bg-green-800 disabled:opacity-50',
+  success: 'border-transparent bg-ok text-white hover:bg-green-800 disabled:opacity-50',
   dark: 'bg-white/10 text-white border-white/20 hover:bg-white/15',
 }
 const SIZE = {
@@ -28,7 +31,7 @@ export const Button = forwardRef(function Button(
   ref,
 ) {
   const cls = cx(
-    'inline-flex items-center justify-center border border-transparent font-semibold transition-colors whitespace-nowrap',
+    'inline-flex items-center justify-center border font-semibold transition-colors whitespace-nowrap',
     BTN[variant], SIZE[size], className,
   )
   const content = (

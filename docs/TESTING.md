@@ -11,7 +11,7 @@ so RLS, grants and guards are exercised for real.
 npm run test:db       # or: bash supabase/tests/run_tests.sh && bash supabase/tests/concurrency.sh
 ```
 
-`20_tests.sql`: **197 assertions** covering:
+`20_tests.sql` + `30_extensions.sql`: **222 assertions** covering:
 - **Sign-up**: domain restriction, empty allow-list, profile creation, metadata cannot grant admin
 - **Student restrictions**: cannot change own role or status, edit others, write stock, insert or
   delete items, write requests, borrowings or returns directly, read the activity log or settings,
@@ -33,6 +33,7 @@ npm run test:db       # or: bash supabase/tests/run_tests.sh && bash supabase/te
   a requirement above total stock; projects without components
 - **Ranking**: buildable first, fewer missing first, unconfigured last, unique positions,
   deterministic, preference tie-breaks, filters, pagination; students never see drafts
+- **Loan extensions**: only the borrower, only active loans, later date, total ≤ max loan days, one pending at a time, due date unchanged until an admin approves, reject/withdraw paths, closed when a return is requested, no direct table writes
 - **Overdue** derivation; **admin management**; **notifications** privacy; **dashboard figures**
   equal live sums; every report runs
 
@@ -52,15 +53,15 @@ error-message mapping, the build-instruction parser and CSV escaping.
 ## 3. End-to-end: `harness/`
 
 `harness/e2e.mjs` drives the real `src/` code in Chromium (Playwright) against the real migrated database.
-It runs 29 scenarios: registration with domain rejection and verification gating, wrong-password
+It runs 41 scenarios: registration with domain rejection and verification gating, wrong-password
 handling, student dashboard, inventory search and item details, ranked library, project details at 80%
 with the missing L298N, a full request → approve → issue → verify (with damaged parts) → inventory
 update round trip checked against database values, direct API attempts to self-approve or edit stock
 (refused), admin inventory create, adjust and history, the project editor, users, reports, activity,
-settings, notifications, the mobile layout (no horizontal overflow) and the 404 page. It fails on
+settings, notifications, the mobile layout (no horizontal overflow) and the 404 page. It also covers the dashboard without banner or quick actions, continuous inventory scrolling past one batch, toggle geometry in both states on desktop and mobile, multi-component requests with quantity changes saved exactly, My requests without the Cancelled tab or timeline (also after refresh and a new request), and the status → action mapping (Cancel / Return + Extend / Request again / Request return) with each action checked against the database. It fails on
 any browser console error.
 
 The harness exists because the environment this was built in could not install npm packages.
-It bundles with esbuild and uses small stand-ins for the router, Supabase client, icons and charts
-(see `harness/README.md`). Re-run the same flows against a real Supabase project before go-live,
+It bundles with esbuild. With `REAL_MODULES=<path to a real node_modules>` it uses the genuine React,
+React Router, lucide-react and Recharts packages and replaces only the Supabase client (see `harness/README.md`). Re-run the same flows against a real Supabase project before go-live,
 using the checklist at the end of SETUP.md.

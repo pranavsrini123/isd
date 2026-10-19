@@ -66,3 +66,18 @@
   .skeleton::after { animation: none; }
   * { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* GET STARTED press: a soft scale-down plus a cyan ripple from the click point. */
+.welcome-cta.is-pressed {
+  transform: scale(0.96); opacity: 0;
+  box-shadow: 0 0 0 10px rgba(34, 211, 238, .12), 0 0 48px rgba(34, 211, 238, .55);
+  transition: transform 160ms ease-out, opacity 140ms ease-in 40ms, box-shadow 160ms ease-out;
+}
+.welcome-cta::after {
+  content: ""; position: absolute; left: var(--rx, 50%); top: var(--ry, 50%);
+  width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 9999px;
+  background: rgba(255, 255, 255, .55); transform: scale(0); opacity: 0; pointer-events: none;
+}
+.welcome-cta.is-pressed::after { animation: cta-ripple 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes cta-ripple { 0% { transform: scale(0); opacity: .7 } 100% { transform: scale(26); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { .welcome-cta.is-pressed::after { animation: none; } }

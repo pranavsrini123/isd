@@ -69,7 +69,7 @@ const files = []
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => e.isDirectory() ? walk(path.join(d, e.name)) : /\.(jsx?|html)$/.test(e.name) && files.push(path.join(d, e.name)))
 walk(path.join(ROOT, 'src'))
 const candidates = new Set()
-for (const f of files) for (const t of fs.readFileSync(f, 'utf8').split(/[\s"'`{}()<>,;]+/)) if (t) candidates.add(t.replace(/^\$\{?/, ''))
+for (const f of files) for (const t of fs.readFileSync(f, 'utf8').split(/[\s"'`{}<>;]+/)) if (t) candidates.add(t.replace(/^\$\{?/, ''))
 const css = fs.readFileSync(path.join(ROOT, 'src/index.css'), 'utf8')
 const compiler = await compile(css, {
   base: ROOT,

@@ -10,6 +10,7 @@ import { PageLoader } from './components/ui/primitives'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import SetupRequired from './pages/public/SetupRequired'
 import Landing from './pages/public/Landing'
+import Welcome from './pages/public/Welcome'
 import { Login, Register, VerifyEmail, ForgotPassword, ResetPassword, AuthCallback } from './pages/public/Auth'
 import NotFound from './pages/public/NotFound'
 
@@ -42,7 +43,8 @@ export default function App() {
           <CartProvider>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Landing />} />
+                <Route path="/" element={<Welcome />} />
+                <Route path="/about" element={<Landing />} />
                 <Route path="/login" element={<RedirectIfSignedIn><Login /></RedirectIfSignedIn>} />
                 <Route path="/register" element={<RedirectIfSignedIn><Register /></RedirectIfSignedIn>} />
                 <Route path="/verify-email" element={<VerifyEmail />} />

@@ -69,7 +69,13 @@ sql("update public.profiles set role='admin' where email='lab.admin@srmist.edu.i
 sql("insert into public.inventory_items (name, category_id, total_qty, available_qty, is_demo) select 'Extra Part '||lpad(g::text, 2, '0'), (select id from public.inventory_categories where name = 'Prototyping'), 5, 5, true from generate_series(1, 30) g")
 
 // --- public -----------------------------------------------------------------
-await check('landing renders', async () => { await go('/'); expect((await text()).includes('What can I build?'), 'hero missing'); await shot('landing') })
+await check('welcome page renders (INVENTRA, by ISD Lab, Get started)', async () => {
+  await go('/')
+  const t = await text()
+  expect(t.includes('INVENTRA') && t.includes('by ISD Lab') && /get started/i.test(t), 'welcome missing')
+  await shot('welcome')
+})
+await check('previous landing page still available at /about', async () => { await go('/about'); expect((await text()).includes('What can I build?'), 'about missing') })
 await check('register rejects non-SRM email', async () => {
   await go('/register')
   await page.getByLabel('Full name').fill('Test Outsider')
@@ -278,6 +284,7 @@ await check('my requests: no Cancelled tab, no Latest Request timeline (also aft
   }
   // each component is its own row inside the request card
   const card = page.locator('[data-request]').first()
+  await card.locator('li').nth(1).waitFor({ timeout: 5000 }).catch(() => {})
   expect(await card.locator('li').count() >= 2, 'components not listed individually')
   await shot('student-my-requests-list')
 })

@@ -13,13 +13,13 @@ import { useToast } from '../../context/ToastContext'
 import { Badge, Button, Card, EmptyState, ErrorState, PageHeader, SkeletonCards, Spinner } from '../../components/ui/primitives'
 import { SearchInput, Select, Stepper } from '../../components/ui/forms'
 import { Modal } from '../../components/ui/Modal'
-import { StockBadge, DemoBadge } from '../../components/domain/badges'
+import { StockBadge, DemoBadge, LabUseBadge } from '../../components/domain/badges'
 import { Thumb } from '../../components/domain/Thumb'
 
 const BATCH = 24
 
 export default function StudentInventory() {
-  const [f, setF] = useSearchState({ search: '', category: '', stock: '', sort: 'name' })
+  const [f, setF] = useSearchState({ search: '', category: '', stock: '', borrow: '', sort: 'name' })
   const [searchText, setSearchText] = useState(f.search)
   const debounced = useDebounce(searchText, 300)
   useEffect(() => { if (debounced !== f.search) setF({ search: debounced }) }, [debounced]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -29,8 +29,8 @@ export default function StudentInventory() {
   const totals = useQuery(() => inventoryTotals(), [])
   // One continuous list: batches load automatically as the student scrolls.
   const list = useInfiniteList(
-    (offset, limit) => listInventory({ search: f.search, categoryId: f.category, stock: f.stock, sort: f.sort, offset, pageSize: limit }),
-    [f.search, f.category, f.stock, f.sort],
+    (offset, limit) => listInventory({ search: f.search, categoryId: f.category, stock: f.stock, requestable: f.borrow, sort: f.sort, offset, pageSize: limit }),
+    [f.search, f.category, f.stock, f.borrow, f.sort],
     { batchSize: BATCH },
   )
   useRealtime(['inventory_items'], () => { list.refresh(); totals.refetch() })
@@ -42,12 +42,14 @@ export default function StudentInventory() {
         actions={totals.data && <Badge tone="info" className="!px-3 !py-1 !text-sm">{formatNumber(totals.data.available)} of {formatNumber(totals.data.total)} available</Badge>} />
 
       <Card className="mb-5" padded={false}>
-        <div className="grid gap-3 p-4 md:grid-cols-[1fr_200px_180px_170px]">
+        <div className="grid gap-3 p-4 md:grid-cols-2 xl:grid-cols-[1fr_190px_170px_170px_170px]">
           <SearchInput value={searchText} onChange={setSearchText} placeholder="Search by name, brand, model or asset ID" />
           <Select aria-label="Category" value={f.category} onChange={(e) => setF({ category: e.target.value })}
             placeholder="All categories" options={(cats.data || []).map((c) => ({ value: c.id, label: c.name }))} />
           <Select aria-label="Availability" value={f.stock} onChange={(e) => setF({ stock: e.target.value })} placeholder="Any availability"
             options={[{ value: 'in_stock', label: 'In stock' }, { value: 'low_stock', label: 'Low stock' }, { value: 'out_of_stock', label: 'Out of stock' }]} />
+          <Select aria-label="Borrowing" value={f.borrow} onChange={(e) => setF({ borrow: e.target.value })} placeholder="Any borrowing"
+            options={[{ value: 'yes', label: 'Can be borrowed' }, { value: 'no', label: 'Lab use only' }]} />
           <Select aria-label="Sort" value={f.sort} onChange={(e) => setF({ sort: e.target.value })}
             options={[{ value: 'name', label: 'Sort: Name' }, { value: 'available', label: 'Sort: Most available' }, { value: 'low', label: 'Sort: Least available' }]} />
         </div>
@@ -57,7 +59,7 @@ export default function StudentInventory() {
         : list.isInitialLoading ? <SkeletonCards count={8} className="h-64" />
         : rows.length === 0 ? (
           <Card><EmptyState icon={Boxes} title="No components match"
-            action={(f.search || f.category || f.stock) && <Button variant="outline" onClick={() => { setSearchText(''); setF({ search: '', category: '', stock: '' }) }}>Clear filters</Button>}>
+            action={(f.search || f.category || f.stock || f.borrow) && <Button variant="outline" onClick={() => { setSearchText(''); setF({ search: '', category: '', stock: '', borrow: '' }) }}>Clear filters</Button>}>
             Try a different search or remove a filter.
           </EmptyState></Card>
         ) : (
@@ -97,6 +99,7 @@ function ItemCard({ item, onOpen }) {
           <StockBadge status={item.stock_status} />
         </div>
         <p className="mt-0.5 text-[13px] text-muted">{item.category_name}{item.brand_model ? ` · ${item.brand_model}` : ''}</p>
+        {item.is_requestable === false && <div className="mt-2"><LabUseBadge show={false} /></div>}
         <div className="mt-auto flex items-end justify-between gap-2 pt-4">
           <div>
             <p className="text-sm"><span className="font-display text-xl font-bold">{item.available_qty}</span><span className="text-muted"> / {item.total_qty} available</span></p>
@@ -116,11 +119,14 @@ function ItemModal({ item, onClose }) {
   const projects = useQuery(() => (item ? getItemProjects(item.id) : Promise.resolve([])), [item?.id], { enabled: !!item })
   if (!item) return null
   const inCart = cart.lines.find((l) => l.item_id === item.id)
-  const max = Math.max(0, item.available_qty - (inCart?.qty || 0))
+  const requestable = item.is_requestable !== false
+  const max = Math.max(0, (item.requestable_qty ?? item.available_qty) - (inCart?.qty || 0))
   const specs = Object.entries(item.specifications || {})
   return (
     <Modal open={!!item} onClose={onClose} title={item.name} description={`${item.category_name}${item.brand_model ? ' · ' + item.brand_model : ''}`} size="lg"
-      footer={item.available_qty > 0 ? (
+      footer={!requestable ? (
+        <p className="text-sm text-warn">For use in the lab only — it can't be added to a borrowing request. Ask the lab staff to use it in the lab.</p>
+      ) : item.available_qty > 0 ? (
         <div className="flex w-full flex-wrap items-center justify-between gap-3">
           <span className="text-sm text-muted">{inCart ? `${inCart.qty} already in your request list` : 'Add to your request list, then submit it for approval.'}</span>
           <div className="flex items-center gap-2">
@@ -135,7 +141,7 @@ function ItemModal({ item, onClose }) {
       <div className="grid gap-6 sm:grid-cols-[200px_1fr]">
         <Thumb path={item.image_path} name={item.name} category={item.category_name} className="h-44 w-full" />
         <div>
-          <div className="mb-3 flex flex-wrap gap-2"><StockBadge status={item.stock_status} /><DemoBadge show={item.is_demo} /></div>
+          <div className="mb-3 flex flex-wrap gap-2"><StockBadge status={item.stock_status} /><LabUseBadge show={item.is_requestable} /><DemoBadge show={item.is_demo} /></div>
           <dl className="grid grid-cols-3 gap-3 text-center">
             {[['Available', item.available_qty], ['On loan', item.borrowed_qty + item.reserved_qty], ['Total', item.total_qty]].map(([k, v]) => (
               <div key={k} className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-muted">{k}</dt><dd className="font-display text-xl font-bold">{v}</dd></div>

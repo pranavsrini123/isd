@@ -240,7 +240,7 @@ await check('add components end-to-end: add A and B, +A, −B, remove one, submi
   await dlg.getByRole('button', { name: 'Add 830-point Breadboard' }).click()                    // C (to remove later)
   // out-of-stock items: hidden by default, disabled with an explanation when shown
   await find('l298n')
-  expect((await dlg.innerText()).includes('No components found in stock'), 'out-of-stock not hidden')
+  expect((await dlg.innerText()).includes('No components found that can be borrowed now'), 'out-of-stock not hidden')
   await dlg.getByRole('switch').click(); await page.waitForTimeout(800)
   expect(await dlg.getByRole('button', { name: 'L298N Motor Driver is out of stock' }).isDisabled(), 'out-of-stock not disabled')
   expect((await dlg.innerText()).includes('Out of stock — cannot be requested right now'), 'no explanation')

@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Cpu, Gauge, Cog, Monitor, Radio, BatteryCharging, Cable, Boxes, FolderKanban } from 'lucide-react'
+import { Cpu, Gauge, Cog, Monitor, Radio, BatteryCharging, Cable, Boxes, FolderKanban, Wrench, Bot } from 'lucide-react'
 import { imageUrl } from '../../lib/api'
 import { cx } from '../ui/primitives'
 
 const CATEGORY_ICON = [
   [/micro|controller|board/i, Cpu], [/sensor/i, Gauge], [/motor|driver|actuator/i, Cog],
   [/display|screen|lcd/i, Monitor], [/comm|radio|wireless/i, Radio], [/power|battery/i, BatteryCharging],
-  [/proto|wire|bread/i, Cable],
+  [/proto|wire|bread|accessor/i, Cable], [/tool/i, Wrench], [/special|equipment/i, Bot],
 ]
 const GRADIENTS = [
   'from-[#E0ECFF] to-[#CFF5FB] text-brand', 'from-[#CFF5FB] to-[#E0ECFF] text-teal',

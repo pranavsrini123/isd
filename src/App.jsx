@@ -25,6 +25,7 @@ const Profile = lazy(() => import('./pages/student/Profile'))
 
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
 const AdminInventory = lazy(() => import('./pages/admin/Inventory'))
+const AdminImport = lazy(() => import('./pages/admin/Import'))
 const AdminRequests = lazy(() => import('./pages/admin/Requests'))
 const AdminIssuance = lazy(() => import('./pages/admin/Issuance'))
 const AdminProjects = lazy(() => import('./pages/admin/Projects'))
@@ -67,6 +68,7 @@ export default function App() {
                     <Route path="/admin" element={<AdminLayout />}>
                       <Route index element={<AdminDashboard />} />
                       <Route path="inventory" element={<AdminInventory />} />
+                      <Route path="import" element={<AdminImport />} />
                       <Route path="requests" element={<AdminRequests />} />
                       <Route path="issuance" element={<AdminIssuance />} />
                       <Route path="projects" element={<AdminProjects />} />

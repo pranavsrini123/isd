@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Archive, ArchiveRestore, Boxes, History, ImagePlus, Pencil, Plus, Settings2, SlidersHorizontal, Tags, Trash2 } from 'lucide-react'
+import { Archive, ArchiveRestore, Boxes, FileSpreadsheet, History, ImagePlus, Pencil, Plus, Settings2, SlidersHorizontal, Tags, Trash2 } from 'lucide-react'
 import { useQuery } from '../../hooks/useQuery'
 import { useRealtime } from '../../hooks/useRealtime'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useSearchState } from '../../hooks/useSearchState'
 import {
-  adjustStock, createCategory, createItem, deleteCategory, getItemProjects, itemHistory, listCategories, listInventory,
+  adjustStock, createCategory, createItem, deleteCategory, getItemProjects, itemHistory, itemSourceRecords, listCategories, listInventory,
   renameCategory, setItemArchived, updateItem, uploadImage,
 } from '../../lib/api'
 import { formatDateTime } from '../../lib/format'
@@ -51,7 +51,7 @@ export default function AdminInventory() {
   return (
     <div>
       <PageHeader title="Inventory management" subtitle="Catalogue, stock levels and adjustments. Every quantity change is logged."
-        actions={<><Button variant="outline" icon={Tags} onClick={() => setCatsOpen(true)}>Categories</Button><Button icon={Plus} onClick={() => setEditing('new')}>Add item</Button></>} />
+        actions={<><Button to="/admin/import" variant="outline" icon={FileSpreadsheet}>Audit import</Button><Button variant="outline" icon={Tags} onClick={() => setCatsOpen(true)}>Categories</Button><Button icon={Plus} onClick={() => setEditing('new')}>Add item</Button></>} />
 
       <Card padded={false}>
         <div className="grid items-center gap-3 border-b border-line p-4 lg:grid-cols-[1fr_200px_180px_auto]">
@@ -79,8 +79,9 @@ export default function AdminInventory() {
                       <div className="flex items-center gap-3">
                         <Thumb path={i.image_path} name={i.name} category={i.category_name} className="h-10 w-10" />
                         <div className="min-w-0">
-                          <p className="font-semibold">{i.name} <DemoBadge show={i.is_demo} /></p>
+                          <p className="font-semibold">{i.name} <DemoBadge show={i.is_demo} />{!i.is_requestable && <Badge tone="warn" className="ml-1">Lab use only</Badge>}</p>
                           <p className="text-xs text-muted">{i.category_name}{i.storage_location ? ` · ${i.storage_location}` : ''}{i.asset_ids ? ` · ${i.asset_ids}` : ''}</p>
+                          {i.remarks && <p className="text-xs text-warn">Note: {i.remarks}</p>}
                         </div>
                       </div>
                     </Td>
@@ -129,7 +130,7 @@ function ItemForm({ item, categories, onClose, onSaved }) {
     name: item?.name || '', category_id: item?.category_id || categories[0]?.id || '', brand_model: item?.brand_model || '',
     description: item?.description || '', asset_ids: item?.asset_ids || '', storage_location: item?.storage_location || '',
     condition: item?.condition || 'good', low_stock_threshold: item?.low_stock_threshold ?? 2, total_qty: 0,
-    image_path: item?.image_path || null,
+    image_path: item?.image_path || null, is_requestable: item ? item.is_requestable !== false : true, remarks: item?.remarks || '',
     specs: Object.entries(item?.specifications || {}).map(([k, v]) => ({ k, v: String(v) })),
   }))
   const [errors, setErrors] = useState({})
@@ -161,7 +162,7 @@ function ItemForm({ item, categories, onClose, onSaved }) {
       name: form.name.trim(), category_id: form.category_id, brand_model: form.brand_model.trim() || null,
       description: form.description.trim() || null, asset_ids: form.asset_ids.trim() || null,
       storage_location: form.storage_location.trim() || null, condition: form.condition, low_stock_threshold: thr,
-      image_path: form.image_path,
+      image_path: form.image_path, is_requestable: form.is_requestable, remarks: form.remarks.trim() || null,
       specifications: Object.fromEntries(form.specs.filter((s) => s.k.trim()).map((s) => [s.k.trim(), s.v.trim()])),
     }
     setSaving(true)
@@ -190,6 +191,11 @@ function ItemForm({ item, categories, onClose, onSaved }) {
         <Select label="Condition" value={form.condition} onChange={set('condition')} options={CONDITIONS} />
         <Input label="Asset IDs" value={form.asset_ids} onChange={set('asset_ids')} placeholder="e.g. ISD-MCU-0001..0010" className="sm:col-span-2" maxLength={200} />
         <Textarea label="Description" value={form.description} onChange={set('description')} className="sm:col-span-2" maxLength={4000} />
+        <div className="sm:col-span-2 rounded-xl border border-line p-3">
+          <Toggle checked={form.is_requestable} onChange={(v) => setForm((f) => ({ ...f, is_requestable: v }))} label="Available for borrowing" />
+          <p className="mt-1 text-xs text-muted">{form.is_requestable ? 'Students can add this item to a request.' : 'Lab use only: students see the item but cannot request it, and it does not count toward project readiness.'}</p>
+        </div>
+        <Textarea label="Remarks" value={form.remarks} onChange={set('remarks')} className="sm:col-span-2" rows={2} maxLength={1000} hint="Internal note, e.g. from a stock audit. Shown to admins only." />
         <div className="sm:col-span-2">
           <p className="mb-1.5 text-sm font-semibold">Image</p>
           <div className="flex items-center gap-4">
@@ -277,6 +283,7 @@ function AdjustForm({ item, onClose, onSaved }) {
 function HistoryDrawer({ item, onClose }) {
   const h = useQuery(() => itemHistory(item.id), [item.id])
   const used = useQuery(() => getItemProjects(item.id), [item.id])
+  const src = useQuery(() => itemSourceRecords(item.id), [item.id])
   return (
     <Modal open onClose={onClose} side title={item.name} description="Stock adjustments, edits and project usage">
       <h3 className="label-caps mb-2">Used by projects</h3>
@@ -284,6 +291,23 @@ function HistoryDrawer({ item, onClose }) {
         {(used.data || []).map((p) => <Badge key={p.id} tone={p.status === 'published' ? 'info' : 'neutral'}>{p.name} ×{p.qty_required}</Badge>)}
         {used.data && used.data.length === 0 && <p className="text-sm text-muted">Not used by any project.</p>}
       </div>
+      {(src.data || []).length > 0 && (
+        <>
+          <h3 className="label-caps mb-2">Source records</h3>
+          <ul className="mb-6 space-y-2">
+            {src.data.map((r) => (
+              <li key={r.id} className="rounded-lg bg-slate-50 p-3 text-sm">
+                <p className="font-medium">{r.original_name}</p>
+                <p className="text-xs text-muted">{r.source_doc} · {r.source_section === 'special_equipment' ? 'Special equipment' : 'Small components'} · page {r.source_page} · No. {r.source_serial}</p>
+                <p className="text-xs text-muted">
+                  {r.qty_reported != null ? `Quantity ${r.qty_reported}` : `ISD Lab ${r.qty_isd_lab ?? '–'} · old project ${r.qty_old_project ?? '–'}`} · available {r.qty_available_reported ?? '–'}
+                  {r.remarks ? ` · “${r.remarks}”` : ''} · {r.status}{r.applied_at ? ` ${formatDateTime(r.applied_at)}` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
       <h3 className="label-caps mb-2">History</h3>
       {h.isInitialLoading ? <SkeletonRows rows={4} /> : h.error ? <ErrorState error={h.error} /> : (
         <ol className="relative space-y-4 border-l border-line pl-5">

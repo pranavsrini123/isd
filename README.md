@@ -39,6 +39,7 @@ to Vercel.
 | Row level security and grants | `supabase/migrations/0004_rls_and_grants.sql` |
 | Image bucket and Realtime | `supabase/migrations/0005_storage_realtime.sql` |
 | Loan extension requests (student asks, admin approves) | `supabase/migrations/0006_loan_extensions.sql` |
+| Audited inventory import (source records, review, apply/revert, lab-use-only items) | `supabase/migrations/0007_inventory_audit_import.sql`, `0008_components_audit_2026_10_12_data.sql`, admin page `/admin/import` |
 | Demo data (flagged `is_demo`) | `supabase/seed.sql` |
 | Data access (the only module that calls Supabase) | `src/lib/api.js` |
 | Student pages / admin pages | `src/pages/student`, `src/pages/admin` |

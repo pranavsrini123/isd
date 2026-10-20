@@ -1,0 +1,874 @@
+[
+ [
+  [
+   "Sl No",
+   "Special Components Detail",
+   "Quantity",
+   "Available",
+   "Remarks"
+  ],
+  [
+   "1",
+   "Smorphi with AI Features",
+   "5",
+   "5",
+   ""
+  ],
+  [
+   "2",
+   "6 DoF Mini Arm",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "3",
+   "ZED-2 Stereolabs Xavier NX Kit",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "4",
+   "2D Lidar Sensor",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "5",
+   "Intel Depth Sense Camera",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "6",
+   "Jetson Nano",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "7",
+   "STM32F769I-Disco",
+   "2",
+   "2",
+   ""
+  ],
+  [
+   "8",
+   "Tiny HP Pro",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "9",
+   "Re-Computer Case (2071)",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "10",
+   "Joy Stick",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "11",
+   "Arduino and Robotics Kit",
+   "8",
+   "8",
+   ""
+  ],
+  [
+   "12",
+   "3d Printer",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "13",
+   "Twin Bot",
+   "6",
+   "6",
+   ""
+  ],
+  [
+   "14",
+   "C-DAC Drone Kit",
+   "3",
+   "3",
+   "Received 11/5/2026"
+  ],
+  [
+   "15",
+   "Motor test Jig",
+   "1",
+   "1",
+   "Received 11/5/2026"
+  ]
+ ],
+ [
+  [
+   "Slno",
+   "Small Components Detail",
+   "Quantity",
+   "Quantity",
+   "Availble",
+   "Remarks"
+  ],
+  [
+   "",
+   "",
+   "ISD LAB",
+   "From old Project",
+   "as of 12/10/2026",
+   ""
+  ],
+  [
+   "1",
+   "1ch Optp Relay",
+   "1",
+   "3",
+   "4",
+   ""
+  ],
+  [
+   "2",
+   "4ch Optp Relay",
+   "0",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "3",
+   "9V1A Adapter",
+   "2",
+   "0",
+   "1",
+   "Door Lock Project"
+  ],
+  [
+   "4",
+   "AC/DC Adapter-SMPS-60W-F005",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "5",
+   "Allen Keys",
+   "16",
+   "0",
+   "16",
+   ""
+  ],
+  [
+   "6",
+   "Alphanumeric LCD",
+   "1",
+   "12",
+   "13",
+   "Used for Project"
+  ],
+  [
+   "7",
+   "Arduino Connector Cable",
+   "5",
+   "10",
+   "15",
+   "1 ongoing project"
+  ],
+  [
+   "8",
+   "Arduino Mega Ch340",
+   "2",
+   "1",
+   "2",
+   "1 ongoing project"
+  ],
+  [
+   "9",
+   "Arduino Nano",
+   "1",
+   "7",
+   "8",
+   ""
+  ],
+  [
+   "10",
+   "Arduino Uno Smd Ch340",
+   "4",
+   "27",
+   "31",
+   ""
+  ],
+  [
+   "11",
+   "Battery(18650-PC4) Blossom (Green & Purple)",
+   "6",
+   "0",
+   "6",
+   ""
+  ],
+  [
+   "12",
+   "Bread Board",
+   "4",
+   "17",
+   "21",
+   "1 ongoing project"
+  ],
+  [
+   "13",
+   "Cable BK 40 -002 II HC",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "14",
+   "Capacitors (100 UF/25V)",
+   "10",
+   "0",
+   "10",
+   ""
+  ],
+  [
+   "15",
+   "Cell Holder-2 18659 2",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "16",
+   "Cell Holder-4 18659 2",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "17",
+   "Cell Lithium Charger 2",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "18",
+   "CP2102-USB to -Til Serial Convertor",
+   "0",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "19",
+   "DC Buck Power Supply",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "20",
+   "DC 3231-Real Time Clock Module",
+   "0",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "21",
+   "DIODES(IN4007)",
+   "4",
+   "2",
+   "6",
+   ""
+  ],
+  [
+   "22",
+   "Dinkle EK500 v",
+   "0",
+   "4",
+   "4",
+   ""
+  ],
+  [
+   "23",
+   "DIY 2W Drive",
+   "2",
+   "1",
+   "3",
+   ""
+  ],
+  [
+   "24",
+   "DIY 4W Drive",
+   "4",
+   "2",
+   "6",
+   ""
+  ],
+  [
+   "25",
+   "ECG Electrode",
+   "0",
+   "2",
+   "1",
+   "1 ongoing Project"
+  ],
+  [
+   "26",
+   "ESP 8266",
+   "0",
+   "2",
+   "2",
+   ""
+  ]
+ ],
+ [
+  [
+   "Slno",
+   "Small Components Detail",
+   "Quantity",
+   "Quantity",
+   "Availble",
+   "Remarks"
+  ],
+  [
+   "",
+   "",
+   "ISD LAB",
+   "From old Project",
+   "as of 12/10/2026",
+   ""
+  ],
+  [
+   "27",
+   "ESP32",
+   "0",
+   "2",
+   "2",
+   ""
+  ],
+  [
+   "28",
+   "Finger Print reader",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "29",
+   "Flame Sensor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "30",
+   "Gluegun-60W",
+   "2",
+   "0",
+   "1",
+   "Damaged"
+  ],
+  [
+   "31",
+   "Heart Rate Monitor",
+   "0",
+   "2",
+   "2",
+   ""
+  ],
+  [
+   "32",
+   "HC05-Bluetooth",
+   "1",
+   "1",
+   "2",
+   ""
+  ],
+  [
+   "33",
+   "IR sensor",
+   "3",
+   "14",
+   "17",
+   "2 meccanum bot"
+  ],
+  [
+   "34",
+   "L293D Motor Driver",
+   "0",
+   "0",
+   "0",
+   "3 meccanum bot"
+  ],
+  [
+   "35",
+   "L298N Driver",
+   "8",
+   "4",
+   "13",
+   ""
+  ],
+  [
+   "36",
+   "LDR module",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "37",
+   "Lead Hilo 50 Grams",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "38",
+   "led 10 pcs -5mm bright white",
+   "35",
+   "0",
+   "35",
+   ""
+  ],
+  [
+   "39",
+   "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+   "50",
+   "0",
+   "50",
+   ""
+  ],
+  [
+   "40",
+   "LM2596 BUCK",
+   "0",
+   "0",
+   "0",
+   "1 Damaged"
+  ],
+  [
+   "41",
+   "MG90 Servo Motor",
+   "2",
+   "5",
+   "7",
+   ""
+  ],
+  [
+   "42",
+   "Micro Usb Cable",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "43",
+   "MOSFET Transistors(IRF520)",
+   "4",
+   "0",
+   "4",
+   ""
+  ],
+  [
+   "44",
+   "MPU 6050",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "45",
+   "MQ -Series Gas Sensor Module",
+   "0",
+   "3",
+   "3",
+   ""
+  ],
+  [
+   "46",
+   "Multimeter",
+   "2",
+   "0",
+   "1",
+   "Damaged"
+  ],
+  [
+   "47",
+   "MKR 1000",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "49",
+   "Neo6m GPS",
+   "1",
+   "3",
+   "4",
+   ""
+  ],
+  [
+   "50",
+   "Node mcu 1.0 ver",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "51",
+   "Node mcu ch 340 base",
+   "1",
+   "1",
+   "2",
+   ""
+  ],
+  [
+   "51",
+   "Octocouplers (4NES) (WHITE)",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "52",
+   "Phototransistors",
+   "12",
+   "0",
+   "12",
+   ""
+  ],
+  [
+   "53",
+   "PIEZO Capsule(PKM 17 EPP-4001-80) (BLACK)",
+   "2",
+   "3",
+   "5",
+   ""
+  ],
+  [
+   "54",
+   "PIEZ0  Buzzer",
+   "0",
+   "2",
+   "2",
+   ""
+  ],
+  [
+   "55",
+   "PIR Sensor",
+   "1",
+   "2",
+   "3",
+   ""
+  ],
+  [
+   "56",
+   "Potentio Meters(10 KILOHM)(Blue)",
+   "6",
+   "0",
+   "6",
+   ""
+  ],
+  [
+   "57",
+   "Port Convertor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "58",
+   "Pushbutton",
+   "14",
+   "9",
+   "23",
+   ""
+  ]
+ ],
+ [
+  [
+   "Slno",
+   "Small components Detail",
+   "Quantity",
+   "Quantity",
+   "Available",
+   "Remarks"
+  ],
+  [
+   "",
+   "",
+   "ISD LAB",
+   "From old Project",
+   "As of 12/10/2026",
+   ""
+  ],
+  [
+   "58",
+   "Rain Sensor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "59",
+   "Resistance (13 Pkd)",
+   "131",
+   "0",
+   "131",
+   ""
+  ],
+  [
+   "60",
+   "RFID Scanner",
+   "1",
+   "4",
+   "4",
+   ""
+  ],
+  [
+   "61",
+   "I2C LCB Adapter Module",
+   "0",
+   "3",
+   "3",
+   ""
+  ],
+  [
+   "62",
+   "SG90 Servo Motor",
+   "4",
+   "13",
+   "17",
+   "1 maccnum bot"
+  ],
+  [
+   "63",
+   "Sim 800l GSM",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "64",
+   "Small DC Motor(6/9V)",
+   "2",
+   "5",
+   "7",
+   ""
+  ],
+  [
+   "65",
+   "Soil sensor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "66",
+   "Soldering \ufb02ux",
+   "2",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "67",
+   "Soldering Stand",
+   "2",
+   "0",
+   "1",
+   "Damaged"
+  ],
+  [
+   "68",
+   "Soldron Iron 25w",
+   "2",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "69",
+   "Sound Sensor",
+   "1",
+   "2",
+   "3",
+   ""
+  ],
+  [
+   "70",
+   "Speaker",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "71",
+   "Stripper",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "72",
+   "Temperature Sensor (NMP36)(BLACK)",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "73",
+   "Termister Sensor",
+   "0",
+   "1",
+   "1",
+   ""
+  ],
+  [
+   "74",
+   "Tilt Sensor",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "75",
+   "Touch  Sensor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "76",
+   "Transparent Glue Stick",
+   "5",
+   "0",
+   "1",
+   "Used for Project"
+  ],
+  [
+   "77",
+   "Turbuity Value Sensor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "78",
+   "Ultra Sonic Sensor",
+   "7",
+   "16",
+   "23",
+   ""
+  ],
+  [
+   "79",
+   "Ultrasonic holder",
+   "1",
+   "2",
+   "3",
+   ""
+  ],
+  [
+   "80",
+   "Ultrasonic holder 2(Wood)",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "81",
+   "Universal Adapter",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "82",
+   "USB HUB 3.0",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "83",
+   "Vibration Motor",
+   "1",
+   "0",
+   "1",
+   ""
+  ],
+  [
+   "84",
+   "Walking Stick",
+   "2",
+   "0",
+   "2",
+   ""
+  ],
+  [
+   "85",
+   "Wefaa Robatics (Screw box)",
+   "5",
+   "0",
+   "5",
+   ""
+  ],
+  [
+   "86",
+   "Weighing Machine",
+   "3",
+   "0",
+   "3",
+   ""
+  ],
+  [
+   "87",
+   "Bosch Trilling Set",
+   "1",
+   "0",
+   "1",
+   ""
+  ]
+ ]
+]

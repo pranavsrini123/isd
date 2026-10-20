@@ -55,7 +55,7 @@ export async function deleteCategory(id) {
 
 // ---------------------------------------------------------------- inventory
 export async function listInventory({
-  search = '', categoryId = '', stock = '', archived = false, page = 1, pageSize = 12, sort = 'name', offset = null, availableOnly = false,
+  search = '', categoryId = '', stock = '', archived = false, page = 1, pageSize = 12, sort = 'name', offset = null, availableOnly = false, requestable = '',
 } = {}) {
   let q = sb().from('inventory_overview').select('*', { count: 'exact' })
   if (search.trim()) {
@@ -64,7 +64,10 @@ export async function listInventory({
   }
   if (categoryId) q = q.eq('category_id', categoryId)
   if (stock) q = q.eq('stock_status', stock)
-  if (availableOnly) q = q.gt('available_qty', 0)
+  // "Available" for a student means it can actually be requested: borrowable and in stock.
+  if (availableOnly) q = q.gt('requestable_qty', 0)
+  if (requestable === 'yes') q = q.eq('is_requestable', true)
+  if (requestable === 'no') q = q.eq('is_requestable', false)
   if (archived !== null) q = q.eq('is_archived', archived)
   if (sort === 'available') q = q.order('available_qty', { ascending: false })
   else if (sort === 'low') q = q.order('available_qty', { ascending: true })
@@ -82,7 +85,7 @@ export async function getItemProjects(itemId) {
   return projects.map((p) => ({ ...p, qty_required: rows.find((r) => r.project_id === p.id)?.qty_required }))
 }
 const ITEM_FIELDS = ['name', 'category_id', 'brand_model', 'description', 'specifications', 'asset_ids',
-  'low_stock_threshold', 'storage_location', 'condition', 'image_path']
+  'low_stock_threshold', 'storage_location', 'condition', 'image_path', 'is_requestable', 'remarks']
 const pick = (obj, keys) => Object.fromEntries(keys.filter((k) => obj[k] !== undefined).map((k) => [k, obj[k]]))
 export async function createItem(item) {
   // Initial quantity is allowed on insert only; the database moves it all to "available".
@@ -290,4 +293,46 @@ export async function listExtensions({ status = 'pending' } = {}) {
   let q = sb().from('loan_extension_overview').select('*')
   if (status) q = q.eq('status', status)
   return unwrap(await q.order('created_at', { ascending: status === 'pending' }).limit(100))
+}
+
+// ---------------------------------------------------------------- audited inventory import (admin)
+// Source records are read-only for the client; every change goes through a
+// database function that re-checks the admin role and logs the stock moves.
+export async function listSourceBatches() {
+  const rows = unwrap(await sb().from('inventory_source_records').select('batch_key, source_doc, created_at').order('created_at', { ascending: false }))
+  const seen = new Map()
+  for (const r of rows) if (!seen.has(r.batch_key)) seen.set(r.batch_key, r)
+  return [...seen.values()]
+}
+export async function listSourceRecords(batchKey) {
+  return unwrap(await sb().from('inventory_source_review').select('*').eq('batch_key', batchKey)
+    .order('source_section', { ascending: false }).order('source_row'))
+}
+export async function itemSourceRecords(itemId) {
+  return unwrap(await sb().from('inventory_source_records')
+    .select('id, batch_key, source_doc, source_section, source_page, source_row, source_serial, original_name, qty_reported, qty_isd_lab, qty_old_project, qty_available_reported, remarks, status, applied_at')
+    .eq('item_id', itemId).order('applied_at', { ascending: false }))
+}
+export const applySourceRecord = ({ recordId, itemId = null, available, damaged, requestable, name = null, category = null, note = null }) =>
+  rpc('admin_apply_source_record', {
+    p_record_id: recordId, p_item_id: itemId, p_available: available, p_damaged: damaged,
+    p_requestable: requestable, p_name: name, p_category: category, p_note: note,
+  })
+export const revertSourceRecord = (recordId, reason) => rpc('admin_revert_source_record', { p_record_id: recordId, p_reason: reason })
+export const skipSourceRecord = (recordId, reason) => rpc('admin_skip_source_record', { p_record_id: recordId, p_reason: reason })
+export const applyReadySourceRecords = (batchKey) => rpc('admin_apply_ready_source_records', { p_batch_key: batchKey })
+export const retireDemoInventory = (includeProjects = false) => rpc('admin_retire_demo_inventory', { p_include_projects: includeProjects })
+/** Project requirements that point at demo, archived or lab-use-only items (need re-linking after an import). */
+export async function projectLinksNeedingReview() {
+  const items = unwrap(await sb().from('inventory_items').select('id, name, is_demo, is_archived, is_requestable')
+    .or('is_demo.eq.true,is_archived.eq.true,is_requestable.eq.false'))
+  if (!items.length) return []
+  const comps = unwrap(await sb().from('project_components').select('project_id, item_id, qty_required').in('item_id', items.map((i) => i.id)))
+  if (!comps.length) return []
+  const projects = unwrap(await sb().from('projects').select('id, name, status, is_demo').in('id', [...new Set(comps.map((c) => c.project_id))]))
+  const byItem = Object.fromEntries(items.map((i) => [i.id, i]))
+  return projects
+    .filter((p) => p.status !== 'archived')
+    .map((p) => ({ ...p, links: comps.filter((c) => c.project_id === p.id).map((c) => ({ ...c, item: byItem[c.item_id] })) }))
+    .sort((a, b) => Number(a.is_demo) - Number(b.is_demo) || a.name.localeCompare(b.name))
 }

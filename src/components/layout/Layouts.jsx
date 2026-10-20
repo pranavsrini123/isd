@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, Boxes, ClipboardCheck, ClipboardList, Cpu, FolderKanban, LayoutDashboard,
+  Activity, BarChart3, Boxes, ClipboardCheck, FileSpreadsheet, ClipboardList, Cpu, FolderKanban, LayoutDashboard,
   PackageCheck, Settings, ShieldCheck, ShoppingBasket, User, Users, GraduationCap,
 } from 'lucide-react'
 import { AppShell } from './AppShell'
@@ -47,6 +47,7 @@ export function AdminLayout() {
     ] },
     { title: 'Catalogue', items: [
       { to: '/admin/inventory', label: 'Inventory', icon: Boxes },
+      { to: '/admin/import', label: 'Audit import', icon: FileSpreadsheet },
       { to: '/admin/projects', label: 'Projects', icon: FolderKanban },
     ] },
     { title: 'Insight & people', items: [

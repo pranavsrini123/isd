@@ -44,7 +44,8 @@ export default function NewRequest() {
   const [pending, setPending] = useState(false)
   const [picker, setPicker] = useState(false)
 
-  const lines = cart.lines.map((l) => ({ ...l, available_qty: stock[l.item_id]?.available_qty ?? 0, item: stock[l.item_id] }))
+  // Only borrowable, non-archived stock counts (requestable_qty is computed by the database).
+  const lines = cart.lines.map((l) => ({ ...l, available_qty: stock[l.item_id]?.requestable_qty ?? 0, item: stock[l.item_id] }))
 
   async function submit(e) {
     e.preventDefault()
@@ -115,7 +116,7 @@ export default function NewRequest() {
                       <p className="flex items-center gap-2 text-sm text-muted">
                         {live.data ? `${l.available_qty} available` : 'Checking stock…'} {l.item && <StockBadge status={l.item.stock_status} />}
                       </p>
-                      {(err || out) && <p className="text-[13px] font-medium text-bad">{out ? 'Out of stock — remove it or wait for returns' : err}</p>}
+                      {(err || out) && <p className="text-[13px] font-medium text-bad">{l.item?.is_requestable === false ? 'Lab use only — this item can no longer be requested. Remove it.' : out ? 'Out of stock — remove it or wait for returns' : err}</p>}
                     </div>
                     <Stepper value={l.qty} onChange={(v) => cart.setQty(l.item_id, v)} min={1} max={Math.max(1, l.available_qty)} label={`${l.name} quantity`} />
                     <Button variant="ghost" size="icon" onClick={() => cart.removeItem(l.item_id)} aria-label={`Remove ${l.name}`}><Trash2 className="h-4 w-4 text-bad" /></Button>
@@ -209,7 +210,7 @@ function ComponentPicker({ open, onClose }) {
           options={(cats.data || []).map((c) => ({ value: c.id, label: c.name }))} />
       </div>
       <div className="mt-3 flex items-center justify-between gap-3">
-        <Toggle checked={availableOnly} onChange={setAvailableOnly} label="Only show components in stock" />
+        <Toggle checked={availableOnly} onChange={setAvailableOnly} label="Only show components I can borrow now" />
         {list.count !== null && <span className="text-xs text-muted">{list.count} found</span>}
       </div>
 
@@ -217,26 +218,27 @@ function ComponentPicker({ open, onClose }) {
         <ul className="mt-3 divide-y divide-line">
           {list.items.map((i) => {
             const line = inCart[i.id]
-            const out = i.available_qty === 0
+            const labOnly = i.is_requestable === false
+            const out = labOnly || i.requestable_qty === 0
             return (
               <li key={i.id} className="flex flex-wrap items-center gap-3 py-2.5">
                 <Thumb path={i.image_path} name={i.name} category={i.category_name} className="h-10 w-10" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{i.name}</p>
                   <p className={out ? 'text-xs font-medium text-bad' : 'text-xs text-muted'}>
-                    {out ? 'Out of stock — cannot be requested right now' : `${i.available_qty} available · ${i.category_name}`}
+                    {labOnly ? 'Lab use only — cannot be requested' : out ? 'Out of stock — cannot be requested right now' : `${i.requestable_qty} available · ${i.category_name}`}
                   </p>
                 </div>
                 {line ? (
                   <div className="flex items-center gap-1">
-                    <Stepper size="sm" value={line.qty} min={1} max={Math.max(1, i.available_qty)} label={`${i.name} quantity`}
+                    <Stepper size="sm" value={line.qty} min={1} max={Math.max(1, i.requestable_qty)} label={`${i.name} quantity`}
                       onChange={(v) => cart.setQty(i.id, v)} />
                     <Button size="icon" variant="ghost" aria-label={`Remove ${i.name}`} onClick={() => cart.removeItem(i.id)}><Trash2 className="h-4 w-4 text-bad" /></Button>
                   </div>
                 ) : (
                   <Button size="sm" variant="outline" icon={Plus} disabled={out} onClick={() => cart.addItem(i, 1)}
-                    aria-label={out ? `${i.name} is out of stock` : `Add ${i.name}`}>
-                    {out ? 'Unavailable' : 'Add'}
+                    aria-label={labOnly ? `${i.name} is for lab use only` : out ? `${i.name} is out of stock` : `Add ${i.name}`}>
+                    {labOnly ? 'Lab only' : out ? 'Unavailable' : 'Add'}
                   </Button>
                 )}
               </li>
@@ -245,7 +247,7 @@ function ComponentPicker({ open, onClose }) {
           {list.isInitialLoading && <li className="py-8 text-center"><Spinner label="Loading components" /></li>}
           {!list.loading && list.items.length === 0 && (
             <li className="py-8 text-center text-sm text-muted">
-              No components found{availableOnly ? ' in stock' : ''}.{availableOnly && ' Turn off "Only show components in stock" to see everything.'}
+              No components found{availableOnly ? ' that can be borrowed now' : ''}.{availableOnly && ' Turn off "Only show components I can borrow now" to see everything.'}
             </li>
           )}
         </ul>

@@ -46,6 +46,10 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Welcome />} />
                 <Route path="/about" element={<Landing />} />
+                {/* Friendly redirects for mistyped or old addresses (e.g. /welcome, /login/welcome). */}
+                <Route path="/welcome" element={<Navigate to="/" replace />} />
+                <Route path="/login/*" element={<Navigate to="/login" replace />} />
+                <Route path="/register/*" element={<Navigate to="/register" replace />} />
                 <Route path="/login" element={<RedirectIfSignedIn><Login /></RedirectIfSignedIn>} />
                 <Route path="/register" element={<RedirectIfSignedIn><Register /></RedirectIfSignedIn>} />
                 <Route path="/verify-email" element={<VerifyEmail />} />

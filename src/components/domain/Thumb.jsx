@@ -16,11 +16,11 @@ const GRADIENTS = [
 const hash = (s = '') => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
 
 /** Shows the uploaded image, or a consistent icon tile when there is none. */
-export function Thumb({ path, name, category, kind = 'item', className }) {
+export function Thumb({ path, name, category, kind = 'item', className, alt }) {
   const [failed, setFailed] = useState(false)
   const url = !failed && imageUrl(path)
   if (url) {
-    return <img src={url} alt={name} loading="lazy" onError={() => setFailed(true)}
+    return <img src={url} alt={alt || name} loading="lazy" decoding="async" onError={() => setFailed(true)}
       className={cx('rounded-[14px] bg-slate-100 object-cover', className)} />
   }
   const Icon = kind === 'project' ? FolderKanban : (CATEGORY_ICON.find(([re]) => re.test(category || ''))?.[1] || Boxes)

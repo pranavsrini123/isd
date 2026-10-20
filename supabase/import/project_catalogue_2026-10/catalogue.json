@@ -1,0 +1,3575 @@
+[
+  {
+    "n": 1,
+    "slug": "obstacle-avoiding-robot",
+    "name": "Obstacle-Avoiding Robot",
+    "category": "Robotics",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "A four-wheel robot that measures distance with an ultrasonic sensor and steers away from obstacles on its own.",
+    "objectives": [
+      "Measure distance with an HC-SR04 ultrasonic sensor",
+      "Drive DC motors through an L298N H-bridge",
+      "Write a simple sense-decide-act control loop"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "Arduino Uno, ultrasonic sensor, L298N, DIY 4W drive chassis with geared motors, 2 × 18650 cells",
+      "Arduino IDE on a laptop",
+      "Jumper wires and screwdriver from the lab"
+    ],
+    "steps": [
+      "Assemble the chassis\nMount the geared motors and wheels on the DIY 4W drive base; fix the Arduino and L298N with standoffs.",
+      "Wire the motor driver\nConnect the left and right motor pairs to the L298N outputs and its IN1–IN4 pins to Arduino digital pins.",
+      "Mount the sensor\nFix the ultrasonic sensor in its holder at the front; wire TRIG/ECHO to two digital pins.",
+      "Program the behaviour\nRead the distance every 50 ms; drive forward when clear, otherwise stop, reverse briefly and turn.",
+      "Tune\nAdjust the stopping distance and turn time on the floor."
+    ],
+    "outcome": "The robot drives around a room and turns away before touching walls or boxes.",
+    "testing": [
+      "Print distances to the Serial Monitor and compare with a ruler at 10, 20 and 50 cm",
+      "Run each motor direction on its own with the wheels lifted",
+      "Place boxes in its path and confirm it stops before contact"
+    ],
+    "safety": [
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger.",
+      "Lift the wheels off the bench when testing motors.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Add a servo to sweep the sensor and choose the clearer side",
+      "Use PWM speed control for smoother turns"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": "Main controller",
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C79",
+        "item": "Ultra Sonic Sensor",
+        "qty": 1,
+        "note": "Front distance sensor",
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C80",
+        "item": "Ultrasonic holder",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C35",
+        "item": "L298N Driver",
+        "qty": 1,
+        "note": "Motor driver",
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C24",
+        "item": "DIY 4W Drive",
+        "qty": 1,
+        "note": "Chassis kit with geared motors – check the kit contents",
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C7",
+        "item": "Arduino Connector Cable",
+        "qty": 1,
+        "note": "Programming cable",
+        "available_at_audit": 15,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Four-wheel robot chassis with an Arduino, an L298N motor driver and an ultrasonic sensor at the front facing an obstacle",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:01",
+    "image_path": "/projects/obstacle-avoiding-robot.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 2,
+    "slug": "bluetooth-controlled-robot",
+    "name": "Bluetooth-Controlled Robot",
+    "category": "Robotics",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Drive a robot car from a phone: an HC-05 Bluetooth module receives commands and the Arduino turns them into motor movement.",
+    "objectives": [
+      "Use serial communication over Bluetooth (HC-05)",
+      "Map received characters to motor commands",
+      "Control motor direction and speed with an L298N"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "Arduino Uno, HC-05, L298N, DIY 4W drive chassis, 2 × 18650 cells",
+      "Arduino IDE on a laptop",
+      "Android phone with a Bluetooth serial controller app (student’s own)"
+    ],
+    "steps": [
+      "Assemble the drive base\nFit motors, wheels, Arduino and L298N on the DIY 4W drive chassis.",
+      "Connect the HC-05\nHC-05 TX → Arduino RX (via SoftwareSerial pins); Arduino TX → HC-05 RX through a 1 kΩ/2 kΩ divider (3.3 V logic).",
+      "Define commands\nF, B, L, R, S for forward, back, left, right, stop; parse them in loop().",
+      "Pair and drive\nPair the phone (default PIN 1234), connect from the app and test each command."
+    ],
+    "outcome": "The robot responds to phone buttons within a fraction of a second and stops when commanded.",
+    "testing": [
+      "Send commands from a serial terminal app and watch the Serial Monitor echo",
+      "Check that every command moves the correct wheels",
+      "Confirm the robot stops if the app sends S"
+    ],
+    "safety": [
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger.",
+      "Never connect the HC-05 RX pin directly to 5 V logic – use the divider.",
+      "Test at low speed in an open area."
+    ],
+    "extensions": [
+      "Add a fail-safe stop when no command arrives for one second",
+      "Add speed levels with PWM"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C32",
+        "item": "HC05-Bluetooth",
+        "qty": 1,
+        "note": "Bluetooth module",
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C35",
+        "item": "L298N Driver",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C24",
+        "item": "DIY 4W Drive",
+        "qty": 1,
+        "note": "Chassis kit with geared motors",
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 2,
+        "note": "Voltage divider for HC-05 RX",
+        "available_at_audit": 131,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Robot car with an HC-05 Bluetooth module wirelessly linked to a smartphone controller",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:02",
+    "image_path": "/projects/bluetooth-controlled-robot.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 3,
+    "slug": "line-following-robot",
+    "name": "Line-Following Robot",
+    "category": "Robotics",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "A two-wheel robot that follows a black line on the floor using two IR reflectance sensors.",
+    "objectives": [
+      "Read IR reflectance sensors",
+      "Implement differential steering",
+      "Tune a simple bang-bang or proportional controller"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "Arduino Uno, 2 IR sensor modules, L298N, DIY 2W drive chassis, 2 × 18650 cells",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Build the base\nAssemble the DIY 2W drive with its castor wheel and mount the electronics.",
+      "Fit the sensors\nMount two IR modules 1–2 cm above the floor, either side of the line; set each threshold with its potentiometer.",
+      "Wire and program\nIf the left sensor sees black, turn left; if the right sees black, turn right; otherwise go straight.",
+      "Make a track\nTape a closed loop with gentle curves on a light floor."
+    ],
+    "outcome": "The robot completes laps of the taped track without losing the line.",
+    "testing": [
+      "Check each sensor’s LED switches over black tape and white floor",
+      "Run straight sections first, then curves",
+      "Time three laps and note any departures"
+    ],
+    "safety": [
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Use more IR sensors and a PID controller",
+      "Add junction detection for a maze"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C33",
+        "item": "IR sensor",
+        "qty": 2,
+        "note": "Line sensors",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C35",
+        "item": "L298N Driver",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C23",
+        "item": "DIY 2W Drive",
+        "qty": 1,
+        "note": "Two-wheel chassis kit",
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Two-wheel robot with IR sensors underneath following a black line track",
+    "external": [
+      "Black insulating tape for the track"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:03",
+    "image_path": "/projects/line-following-robot.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 4,
+    "slug": "servo-robotic-arm",
+    "name": "Servo-Based Robotic Arm",
+    "category": "Robotics",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Program the lab’s 6-DoF mini arm joint by joint, then combine moves into a basic pick-and-place routine.",
+    "objectives": [
+      "Control hobby servos with PWM",
+      "Understand joint angles and workspace limits",
+      "Sequence movements smoothly"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Basic geometry (angles)"
+    ],
+    "hardware_software": [
+      "6 DoF Mini Arm (lab use), Arduino Uno, external 5–6 V supply for the servos",
+      "Arduino IDE on a laptop with the Servo library"
+    ],
+    "steps": [
+      "Inspect the arm\nIdentify each joint’s servo and its safe angle range; check whether the arm has its own controller board.",
+      "Power safely\nPower the servos from the separate supply, sharing ground with the Arduino.",
+      "Move one joint at a time\nWrite a sketch that moves each servo slowly between limits.",
+      "Record poses\nStore joint angles for home, reach, grip and lift.",
+      "Sequence\nInterpolate between poses to pick up a small foam block."
+    ],
+    "outcome": "The arm moves smoothly between stored poses and repeats a simple pick-and-place.",
+    "testing": [
+      "Verify each joint stays within its mechanical limits",
+      "Repeat the pick-and-place ten times and count successes"
+    ],
+    "safety": [
+      "Keep hands clear of the arm while it moves.",
+      "Never power several servos from the Arduino 5 V pin.",
+      "This equipment is for use inside the lab only."
+    ],
+    "extensions": [
+      "Control the arm from a joystick or potentiometers",
+      "Add inverse kinematics for target positions"
+    ],
+    "components": [
+      {
+        "audit_row": "S2",
+        "item": "6 DoF Mini Arm",
+        "qty": 1,
+        "note": "Lab-use equipment",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C4",
+        "item": "AC/DC Adapter-SMPS-60W-F005",
+        "qty": 1,
+        "note": "Servo power supply – check voltage before use",
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Six-degree-of-freedom desktop robotic arm with servo joints lifting a small block",
+    "external": [],
+    "verification": "Confirm whether the 6 DoF Mini Arm includes its own servo controller and the voltage its servos need.",
+    "catalogue_key": "project-catalogue-2026-10:04",
+    "image_path": "/projects/servo-robotic-arm.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 5,
+    "slug": "omnidirectional-robot",
+    "name": "Omnidirectional Robot",
+    "category": "Robotics",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "Explore holonomic motion on the lab’s Smorphi mecanum platform: strafing, rotating in place and following paths.",
+    "objectives": [
+      "Understand mecanum wheel kinematics",
+      "Command forward, sideways and rotational velocities",
+      "Plan and follow simple paths"
+    ],
+    "prerequisites": [
+      "Programming experience in C++ or Python",
+      "Vectors and basic trigonometry"
+    ],
+    "hardware_software": [
+      "Smorphi with AI features (lab use)",
+      "Smorphi programming environment supplied with the platform",
+      "Laptop"
+    ],
+    "steps": [
+      "Read the platform guide\nLearn how Smorphi is powered, charged and programmed, and its speed limits.",
+      "Basic motions\nCommand forward, sideways and rotate-in-place motions and observe the wheels.",
+      "Kinematics\nWrite a function that converts (vx, vy, ω) to the four wheel speeds.",
+      "Path following\nDrive a square without changing heading, then a circle while facing the centre."
+    ],
+    "outcome": "The robot moves in any direction without turning first and follows a planned square path.",
+    "testing": [
+      "Measure drift after a 1 m sideways move",
+      "Repeat the square path three times and compare end positions"
+    ],
+    "safety": [
+      "Run in a clear, enclosed area at low speed.",
+      "Follow the platform’s charging instructions.",
+      "This equipment is for use inside the lab only."
+    ],
+    "extensions": [
+      "Add obstacle avoidance with the platform’s sensors",
+      "Compare with the Twin Bot drive system"
+    ],
+    "components": [
+      {
+        "audit_row": "S1",
+        "item": "Smorphi with AI Features",
+        "qty": 1,
+        "note": "Lab-use platform",
+        "available_at_audit": 5,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Modular mecanum-wheel robot platform moving sideways with motion arrows",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:05",
+    "image_path": "/projects/omnidirectional-robot.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 6,
+    "slug": "3d-printed-robot-chassis",
+    "name": "3D-Printed Robot Chassis",
+    "category": "Robotics",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Design a custom robot chassis in CAD, print it on the lab’s 3D printer and build a working robot on it.",
+    "objectives": [
+      "Design printable parts in CAD",
+      "Prepare and slice a print",
+      "Integrate motors, driver and sensor on a custom frame"
+    ],
+    "prerequisites": [
+      "Basic CAD (Fusion 360, Tinkercad or FreeCAD)",
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "3D printer (lab use), Arduino Uno, L298N, 2 small DC motors, ultrasonic sensor, 18650 cells",
+      "CAD software and a slicer (e.g. Cura)"
+    ],
+    "steps": [
+      "Measure\nMeasure motors, boards and battery holder; plan mounting holes.",
+      "Design\nModel a base plate with motor clamps, standoffs and a sensor mount.",
+      "Print\nSlice with suitable infill and supports; print with staff supervision.",
+      "Assemble\nFit motors, wheels, electronics and wiring with screws from the screw box.",
+      "Test drive\nLoad a simple drive or obstacle-avoiding sketch."
+    ],
+    "outcome": "A printed chassis that carries the electronics securely and drives without flexing.",
+    "testing": [
+      "Check every part fits before final assembly",
+      "Drive for five minutes and inspect for cracks or loose mounts"
+    ],
+    "safety": [
+      "The printer nozzle and bed are hot – do not touch during or just after printing.",
+      "Only start prints with staff permission.",
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger."
+    ],
+    "extensions": [
+      "Add a battery compartment with a hinged lid",
+      "Design snap-fit mounts instead of screws"
+    ],
+    "components": [
+      {
+        "audit_row": "S12",
+        "item": "3d Printer",
+        "qty": 1,
+        "note": "Lab-use equipment",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C35",
+        "item": "L298N Driver",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C65",
+        "item": "Small DC Motor(6/9V)",
+        "qty": 2,
+        "note": "Drive motors",
+        "available_at_audit": 7,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C79",
+        "item": "Ultra Sonic Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C86",
+        "item": "Wefaa Robatics (Screw box)",
+        "qty": 1,
+        "note": "Fasteners",
+        "available_at_audit": 5,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "3D printer printing a robot chassis plate next to motors and an Arduino",
+    "external": [
+      "PLA filament",
+      "Wheels compatible with the DC motor shafts"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:06",
+    "image_path": "/projects/3d-printed-robot-chassis.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 7,
+    "slug": "iot-smart-home-automation",
+    "name": "IoT Smart Home Automation",
+    "category": "IoT & Embedded",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Control four low-voltage loads from a web page served by an ESP32, with a PIR sensor for automatic lighting.",
+    "objectives": [
+      "Serve a web interface from an ESP32",
+      "Switch loads with an opto-isolated relay module",
+      "Combine manual and sensor-based control"
+    ],
+    "prerequisites": [
+      "Arduino IDE with ESP32 board support",
+      "Basic HTML",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "ESP32, 4-channel relay module, PIR sensor, LEDs as stand-in loads",
+      "Arduino IDE (ESP32 core), Wi-Fi network"
+    ],
+    "steps": [
+      "Wire the relay board\nConnect IN1–IN4 to ESP32 GPIOs; power the relay side from 5 V with common ground.",
+      "Add loads\nUse LEDs with resistors as the four “appliances”.",
+      "Build the web server\nServe a page with four toggle buttons that call /relay?ch=n&on=1.",
+      "Add automation\nTurn channel 1 on for 30 s when the PIR detects motion."
+    ],
+    "outcome": "A phone on the same Wi-Fi can switch four outputs, and the light turns on automatically when someone walks past.",
+    "testing": [
+      "Toggle each channel from the page and confirm the relay click and LED",
+      "Walk past the PIR and time the automatic light"
+    ],
+    "safety": [
+      "Use only low-voltage (≤12 V) loads – do not connect mains to the relays.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Add MQTT and a cloud dashboard",
+      "Schedule loads by time of day"
+    ],
+    "components": [
+      {
+        "audit_row": "C27",
+        "item": "ESP32",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C2",
+        "item": "4ch Optp Relay",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C55",
+        "item": "PIR Sensor",
+        "qty": 1,
+        "note": "Motion sensor",
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 4,
+        "note": "Stand-in loads",
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 4,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C42",
+        "item": "Micro Usb Cable",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "ESP32 board connected to a four-channel relay module controlling lights from a phone over Wi-Fi",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:07",
+    "image_path": "/projects/iot-smart-home-automation.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 8,
+    "slug": "smart-irrigation-system",
+    "name": "Smart Irrigation System",
+    "category": "IoT & Embedded",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Water a plant only when it needs it: a soil-moisture sensor decides when a relay switches a small pump on.",
+    "objectives": [
+      "Read an analogue soil-moisture sensor",
+      "Use thresholds with hysteresis",
+      "Switch a pump safely through a relay"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, soil moisture sensor, 1-channel relay",
+      "Small 5 V submersible pump with tubing (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Calibrate\nRecord sensor readings in dry soil and freshly watered soil.",
+      "Wire\nSensor to A0; relay IN to a digital pin; pump powered through the relay contacts.",
+      "Program\nPump on below the dry threshold, off above the wet threshold (hysteresis).",
+      "Install\nPlace the probe near the roots and route the tube to the pot."
+    ],
+    "outcome": "The pump runs only when the soil is dry and stops once it is moist.",
+    "testing": [
+      "Test with a cup of dry and wet soil",
+      "Confirm the pump cannot run longer than a maximum time"
+    ],
+    "safety": [
+      "Keep the electronics away from water; mount them above the pot.",
+      "Use a low-voltage pump only."
+    ],
+    "extensions": [
+      "Log moisture to an SD card or the cloud",
+      "Add a rain sensor to skip watering"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C66",
+        "item": "Soil sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C1",
+        "item": "1ch Optp Relay",
+        "qty": 1,
+        "note": "Switches the pump",
+        "available_at_audit": 4,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Potted plant with a soil moisture probe, an Arduino and a relay driving a small water pump",
+    "external": [
+      "Small 5 V water pump and tubing"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:08",
+    "image_path": "/projects/smart-irrigation-system.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 9,
+    "slug": "environmental-monitoring-station",
+    "name": "Environmental Monitoring Station",
+    "category": "IoT & Embedded",
+    "difficulty": "beginner",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "Measure temperature and air quality with an ESP32 and show the readings on a web page.",
+    "objectives": [
+      "Read analogue sensors with the ESP32 ADC",
+      "Convert raw readings to units",
+      "Publish data over Wi-Fi"
+    ],
+    "prerequisites": [
+      "Arduino IDE with ESP32 board support",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "ESP32, analogue temperature sensor, MQ-series gas sensor",
+      "Arduino IDE (ESP32 core), Wi-Fi"
+    ],
+    "steps": [
+      "Wire sensors\nTemperature sensor to an ADC pin; gas sensor AO to another ADC pin (scale to 3.3 V).",
+      "Warm up\nLet the MQ sensor heat for several minutes before taking readings.",
+      "Convert\nTurn temperature voltage into °C; record gas readings as relative values.",
+      "Serve\nShow live values on a web page that refreshes every few seconds."
+    ],
+    "outcome": "A web page shows the room temperature and a relative air-quality reading that changes with conditions.",
+    "testing": [
+      "Compare temperature with a reference thermometer",
+      "Check the gas reading rises with hand-sanitiser vapour nearby"
+    ],
+    "safety": [
+      "The MQ sensor heater gets hot – do not touch it.",
+      "Never test with flammable gases."
+    ],
+    "extensions": [
+      "Add humidity sensing and charts",
+      "Push data to a cloud service"
+    ],
+    "components": [
+      {
+        "audit_row": "C27",
+        "item": "ESP32",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C73",
+        "item": "Temperature Sensor (NMP36)(BLACK)",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C45",
+        "item": "MQ -Series Gas Sensor Module",
+        "qty": 1,
+        "note": "Relative air quality",
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C42",
+        "item": "Micro Usb Cable",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "ESP32 weather station with temperature and gas sensors sending readings to a dashboard",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:09",
+    "image_path": "/projects/environmental-monitoring-station.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 10,
+    "slug": "rfid-access-control",
+    "name": "RFID-Based Access Control",
+    "category": "IoT & Embedded",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "Grant or deny entry with RFID cards: authorised tags open a servo latch and the LCD shows who was admitted.",
+    "objectives": [
+      "Read RFID tag UIDs over SPI",
+      "Store an allow-list",
+      "Drive a servo latch and LCD feedback"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Arrays and string comparison"
+    ],
+    "hardware_software": [
+      "Arduino Uno, RFID reader with tags, SG90 servo, 16×2 LCD with I2C adapter, LEDs",
+      "Arduino IDE on a laptop with MFRC522 and LiquidCrystal_I2C libraries"
+    ],
+    "steps": [
+      "Read tags\nWire the RFID reader (3.3 V) and print each tag’s UID.",
+      "Allow-list\nStore approved UIDs; compare each scan.",
+      "Feedback\nGreen LED + “Access granted” or red LED + “Denied” on the LCD.",
+      "Latch\nRotate the servo to unlock for three seconds, then relock."
+    ],
+    "outcome": "Authorised cards unlock the latch; unknown cards are refused and shown on screen.",
+    "testing": [
+      "Scan authorised and unauthorised tags ten times each",
+      "Confirm the latch always relocks"
+    ],
+    "safety": [
+      "Power the RFID reader from 3.3 V, not 5 V.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Log access with timestamps (add the RTC module)",
+      "Add an admin card that enrols new tags"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C61",
+        "item": "RFID Scanner",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 4,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C63",
+        "item": "SG90 Servo Motor",
+        "qty": 1,
+        "note": "Latch",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "RFID card reader next to a door latch with an LCD showing access granted",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:10",
+    "image_path": "/projects/rfid-access-control.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 11,
+    "slug": "gsm-alert-system",
+    "name": "GSM-Based Alert System",
+    "category": "IoT & Embedded",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "Send an SMS when a motion sensor is triggered, using a SIM800L GSM module.",
+    "objectives": [
+      "Use AT commands to control a GSM modem",
+      "Power a GSM module correctly",
+      "Debounce and rate-limit alerts"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Serial communication"
+    ],
+    "hardware_software": [
+      "Arduino Uno, SIM800L, PIR sensor, DC buck supply set to about 4 V",
+      "Active SIM card with SMS (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Power\nSet the buck converter to about 4.0 V and connect it to the SIM800L with a short, thick lead.",
+      "Talk to the modem\nUse SoftwareSerial to send AT, AT+CSQ and AT+CREG? and read the replies.",
+      "Send an SMS\nUse AT+CMGF=1 and AT+CMGS to send a test message.",
+      "Trigger\nSend one alert when the PIR fires, then wait before the next."
+    ],
+    "outcome": "A phone receives an SMS within seconds of motion being detected.",
+    "testing": [
+      "Check signal quality (AT+CSQ) before testing",
+      "Trigger the PIR and time SMS delivery",
+      "Confirm repeated motion does not flood messages"
+    ],
+    "safety": [
+      "The SIM800L draws current spikes – use the buck supply, not the Arduino 5 V pin.",
+      "Use your own SIM and agree costs before testing."
+    ],
+    "extensions": [
+      "Reply to SMS commands such as STATUS",
+      "Add a GPS location to alerts"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C64",
+        "item": "Sim 800l GSM",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C55",
+        "item": "PIR Sensor",
+        "qty": 1,
+        "note": "Trigger sensor",
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C19",
+        "item": "DC Buck Power Supply",
+        "qty": 1,
+        "note": "GSM power",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "SIM800L GSM module wired to an Arduino sending an SMS alert to a phone",
+    "external": [
+      "Active SIM card with SMS credit"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:11",
+    "image_path": "/projects/gsm-alert-system.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 12,
+    "slug": "fire-flame-detection-alarm",
+    "name": "Fire and Flame Detection Alarm",
+    "category": "Sensors & Safety",
+    "difficulty": "beginner",
+    "hours": [
+      3,
+      6
+    ],
+    "description": "Sound a buzzer and flash an LED when an IR flame sensor detects a flame.",
+    "objectives": [
+      "Read a digital/analogue flame sensor",
+      "Set a detection threshold",
+      "Produce audible and visual alarms"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, flame sensor module, piezo buzzer, LEDs",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nFlame sensor DO/AO to Arduino; buzzer and LEDs to outputs.",
+      "Calibrate\nAdjust the module potentiometer so room light does not trigger it.",
+      "Program\nOn detection, sound the buzzer and flash the red LED until reset."
+    ],
+    "outcome": "The alarm sounds within a second when a small flame is held in front of the sensor.",
+    "testing": [
+      "Test with a lighter flame at 20, 50 and 100 cm under supervision",
+      "Check sunlight or lamps do not cause false alarms"
+    ],
+    "safety": [
+      "Flame tests only with staff present, away from paper and with no flammable materials nearby.",
+      "This is a teaching model, not a certified fire alarm."
+    ],
+    "extensions": [
+      "Add the GSM module to send an SMS alert",
+      "Add a smoke/gas sensor"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C29",
+        "item": "Flame Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C54",
+        "item": "PIEZ0 Buzzer",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Flame sensor module detecting a candle flame with a buzzer and red warning LED",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:12",
+    "image_path": "/projects/fire-flame-detection-alarm.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 13,
+    "slug": "smart-walking-stick",
+    "name": "Smart Walking Stick",
+    "category": "Sensors & Safety",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "An assistive walking stick that warns of obstacles ahead with a buzzer and vibration.",
+    "objectives": [
+      "Measure distance in real time",
+      "Give graded feedback (faster beeps when closer)",
+      "Package electronics for a wearable/handheld device"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "Walking stick, Arduino Nano, ultrasonic sensor, buzzer, vibration motor, 18650 cells",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Mount\nFix the ultrasonic sensor near the bottom of the stick, angled slightly forward.",
+      "Wire\nNano, buzzer and vibration motor (through a transistor) in a small enclosure near the handle.",
+      "Program\nBeep and vibrate faster as obstacles get closer than 1 m.",
+      "Package\nSecure wires along the stick and make the battery easy to remove."
+    ],
+    "outcome": "Walking towards a wall, the user feels and hears increasingly urgent warnings.",
+    "testing": [
+      "Measure warning distance against a tape measure",
+      "Walk a corridor with obstacles and note any missed objects"
+    ],
+    "safety": [
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger.",
+      "Prototype only – not a replacement for a certified mobility aid."
+    ],
+    "extensions": [
+      "Add a second sensor for head-height obstacles",
+      "Add a fall-detection accelerometer"
+    ],
+    "components": [
+      {
+        "audit_row": "C85",
+        "item": "Walking Stick",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C9",
+        "item": "Arduino Nano",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 8,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C79",
+        "item": "Ultra Sonic Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C54",
+        "item": "PIEZ0 Buzzer",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C84",
+        "item": "Vibration Motor",
+        "qty": 1,
+        "note": "Haptic feedback",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Walking stick fitted with an ultrasonic sensor and a handle unit that buzzes near obstacles",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:13",
+    "image_path": "/projects/smart-walking-stick.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 14,
+    "slug": "fingerprint-attendance-system",
+    "name": "Fingerprint-Based Attendance System",
+    "category": "Sensors & Safety",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Enrol fingerprints and mark attendance with a timestamp shown on an LCD.",
+    "objectives": [
+      "Enrol and match fingerprints with an optical sensor",
+      "Keep time with an RTC",
+      "Design a small user interface"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Serial communication"
+    ],
+    "hardware_software": [
+      "Arduino Uno, fingerprint reader, 16×2 LCD with I2C adapter, DS3231 RTC",
+      "Arduino IDE on a laptop with Adafruit Fingerprint and RTClib libraries"
+    ],
+    "steps": [
+      "Enrol\nRun the library’s enrol example to store a few test fingerprints.",
+      "Match\nOn a successful match, look up the student ID.",
+      "Timestamp\nRead the RTC and show “ID 3 – 09:12 present” on the LCD.",
+      "Log\nPrint each record over serial (or to an SD card as an extension)."
+    ],
+    "outcome": "Enrolled users are recognised and their attendance time is displayed and logged.",
+    "testing": [
+      "Test each enrolled finger five times and record false rejects",
+      "Try an unenrolled finger and confirm it is refused"
+    ],
+    "safety": [
+      "Use only volunteers’ test prints and delete them afterwards – do not store real biometric data.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Upload records to a spreadsheet over Wi-Fi",
+      "Add duplicate-scan protection"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C28",
+        "item": "Finger Print reader",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C20",
+        "item": "DC 3231-Real Time Clock Module",
+        "qty": 1,
+        "note": "Timestamps",
+        "available_at_audit": 1,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Optical fingerprint sensor with an LCD showing an attendance record",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:14",
+    "image_path": "/projects/fingerprint-attendance-system.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 15,
+    "slug": "heart-rate-monitoring-prototype",
+    "name": "Heart Rate Monitoring Prototype",
+    "category": "Sensors & Safety",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "Display pulse readings from a finger-clip heart-rate sensor on an LCD, for learning about biosignals.",
+    "objectives": [
+      "Sample an analogue pulse signal",
+      "Detect beats and compute beats per minute",
+      "Filter noisy signals"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Basic signal concepts (sampling, noise)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, heart rate monitor module, 16×2 LCD with I2C adapter",
+      "Arduino IDE on a laptop and Serial Plotter"
+    ],
+    "steps": [
+      "Wire\nSensor signal to A0; LCD on I2C.",
+      "Visualise\nPlot raw readings in the Serial Plotter while resting a fingertip on the sensor.",
+      "Detect beats\nFind peaks above an adaptive threshold and time the gap between them.",
+      "Display\nShow a smoothed BPM value on the LCD."
+    ],
+    "outcome": "The LCD shows a stable pulse reading that is close to a manual count.",
+    "testing": [
+      "Compare with a 30-second manual pulse count",
+      "Check readings with the finger still and slightly moving"
+    ],
+    "safety": [
+      "For education only – never use it for medical decisions.",
+      "Use only the low-voltage sensor; no electrodes on the chest."
+    ],
+    "extensions": [
+      "Add the wireless logger (project 38)",
+      "Detect irregular intervals"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C31",
+        "item": "Heart Rate Monitor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Finger on a pulse sensor with a heartbeat waveform and BPM reading on an LCD",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:15",
+    "image_path": "/projects/heart-rate-monitoring-prototype.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 16,
+    "slug": "water-turbidity-monitoring",
+    "name": "Water Turbidity Monitoring",
+    "category": "Sensors & Safety",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Measure how cloudy water samples are with a turbidity sensor and show a relative reading.",
+    "objectives": [
+      "Read an optical turbidity sensor",
+      "Calibrate against reference samples",
+      "Present relative measurements honestly"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, turbidity sensor, 16×2 LCD with I2C adapter",
+      "Clear containers and water samples (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nSensor analogue output to A0; LCD on I2C.",
+      "Calibrate\nRecord readings for clean water and for water with increasing amounts of clay or milk.",
+      "Map\nConvert readings into a relative 0–100 cloudiness scale.",
+      "Display\nShow the value and a Clear/Cloudy/Dirty label."
+    ],
+    "outcome": "Different samples give clearly different, repeatable readings.",
+    "testing": [
+      "Measure each sample three times and compare spread",
+      "Check the sensor head is dried between samples"
+    ],
+    "safety": [
+      "Keep the electronics dry; only the probe tip goes in water.",
+      "Do not drink test samples."
+    ],
+    "extensions": [
+      "Log readings over time for a water tank",
+      "Combine with a temperature sensor"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C78",
+        "item": "Turbuity Value Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Turbidity probe dipped in a beaker of cloudy water with readings on a display",
+    "external": [
+      "Clear containers and water samples"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:16",
+    "image_path": "/projects/water-turbidity-monitoring.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 17,
+    "slug": "ai-object-detection",
+    "name": "AI Object Detection",
+    "category": "AI & Advanced Systems",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "Run a pretrained object-detection model on the Jetson Nano with the Intel depth camera and draw labelled boxes in real time.",
+    "objectives": [
+      "Set up an edge-AI board",
+      "Run a pretrained detection network",
+      "Measure inference speed and accuracy"
+    ],
+    "prerequisites": [
+      "Python and Linux command line",
+      "Basic machine-learning concepts"
+    ],
+    "hardware_software": [
+      "Jetson Nano (lab use), Intel depth camera, monitor/keyboard",
+      "JetPack OS image, jetson-inference or similar, Python, librealsense"
+    ],
+    "steps": [
+      "Prepare\nCheck the Jetson’s power supply and SD-card image with staff.",
+      "Camera\nConnect the Intel camera and confirm it streams.",
+      "Model\nRun a pretrained SSD/YOLO model and display boxes and labels.",
+      "Evaluate\nMeasure frames per second and test on lab objects."
+    ],
+    "outcome": "The screen shows live video with correctly labelled boxes around common objects.",
+    "testing": [
+      "Record FPS at two input resolutions",
+      "Count correct/incorrect detections on 20 test objects"
+    ],
+    "safety": [
+      "The Jetson heatsink gets hot – keep the fan clear.",
+      "Lab use only; shut down properly before unplugging."
+    ],
+    "extensions": [
+      "Use depth to report each object’s distance",
+      "Train on a custom dataset of lab components"
+    ],
+    "components": [
+      {
+        "audit_row": "S6",
+        "item": "Jetson Nano",
+        "qty": 1,
+        "note": "Lab-use equipment",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "S5",
+        "item": "Intel Depth Sense Camera",
+        "qty": 1,
+        "note": "Lab-use camera",
+        "available_at_audit": 1,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Jetson Nano board with a camera showing object-detection boxes on a screen",
+    "external": [
+      "Monitor, keyboard and mouse",
+      "microSD card with JetPack"
+    ],
+    "verification": "Confirm the Jetson Nano power supply and OS image, and that this Intel depth camera model works with librealsense on the Jetson.",
+    "catalogue_key": "project-catalogue-2026-10:17",
+    "image_path": "/projects/ai-object-detection.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 18,
+    "slug": "stereo-vision-depth-mapping",
+    "name": "Stereo Vision and Depth Mapping",
+    "category": "AI & Advanced Systems",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "Use the ZED-2 stereo camera kit to compute depth maps and 3D point clouds of the lab.",
+    "objectives": [
+      "Understand stereo disparity and depth",
+      "Use a vendor SDK to capture depth",
+      "Visualise and measure 3D scenes"
+    ],
+    "prerequisites": [
+      "Python or C++",
+      "Basic linear algebra"
+    ],
+    "hardware_software": [
+      "ZED-2 Stereolabs Xavier NX kit (lab use)",
+      "ZED SDK, Python API, monitor"
+    ],
+    "steps": [
+      "Start\nBoot the Xavier NX kit and launch the ZED Explorer to confirm the camera works.",
+      "Depth\nCapture a depth map and display it as a colour image.",
+      "Measure\nRead the distance at chosen pixels and compare with a tape measure.",
+      "Point cloud\nExport and view a point cloud of a scene."
+    ],
+    "outcome": "Depth maps and a 3D point cloud of the lab, with measured distances within a few centimetres.",
+    "testing": [
+      "Compare measured distances at 0.5, 1 and 2 m",
+      "Check accuracy on shiny and dark surfaces"
+    ],
+    "safety": [
+      "Lab use only; handle the camera by its body, not the lenses.",
+      "Shut the kit down properly before disconnecting power."
+    ],
+    "extensions": [
+      "Detect people and report their 3D positions",
+      "Build a simple 3D reconstruction"
+    ],
+    "components": [
+      {
+        "audit_row": "S3",
+        "item": "ZED-2 Stereolabs Xavier NX Kit",
+        "qty": 1,
+        "note": "Lab-use kit",
+        "available_at_audit": 1,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "ZED-2 stereo camera with a colourful depth map of a room",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:18",
+    "image_path": "/projects/stereo-vision-depth-mapping.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 19,
+    "slug": "lidar-mapping-navigation",
+    "name": "LiDAR-Based Mapping and Navigation",
+    "category": "AI & Advanced Systems",
+    "difficulty": "advanced",
+    "hours": [
+      16,
+      30
+    ],
+    "description": "Build a 2D map of a room with the lab’s LiDAR and a ROS SLAM package, then plan paths on it.",
+    "objectives": [
+      "Read 2D laser scans",
+      "Run a SLAM algorithm to build a map",
+      "Understand occupancy grids and path planning"
+    ],
+    "prerequisites": [
+      "Linux and ROS basics",
+      "Python or C++"
+    ],
+    "hardware_software": [
+      "2D LiDAR sensor and mini PC (lab use)",
+      "ROS with the LiDAR’s driver, SLAM toolbox/gmapping, RViz"
+    ],
+    "steps": [
+      "Identify\nFind the LiDAR model and install its ROS driver on the mini PC.",
+      "Scan\nVisualise live scans in RViz.",
+      "Map\nCarry or slowly move the sensor around a room while SLAM builds the map.",
+      "Plan\nSave the map and plan a path between two points."
+    ],
+    "outcome": "A saved occupancy-grid map that matches the room layout.",
+    "testing": [
+      "Compare map dimensions with measured room size",
+      "Rebuild the map twice and compare"
+    ],
+    "safety": [
+      "Most 2D LiDARs are Class 1 lasers, but never look into the emitter.",
+      "Lab use only."
+    ],
+    "extensions": [
+      "Mount on the Twin Bot for autonomous navigation (project 40)",
+      "Detect moving people in scans"
+    ],
+    "components": [
+      {
+        "audit_row": "S4",
+        "item": "2D Lidar Sensor",
+        "qty": 1,
+        "note": "Lab-use sensor",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "S8",
+        "item": "Tiny HP Pro",
+        "qty": 1,
+        "note": "Computing platform",
+        "available_at_audit": 1,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Spinning 2D LiDAR sensor with laser scan lines building a floor-plan map",
+    "external": [],
+    "verification": "Confirm the LiDAR model, its connection (USB/serial) and an available ROS driver.",
+    "catalogue_key": "project-catalogue-2026-10:19",
+    "image_path": "/projects/lidar-mapping-navigation.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 20,
+    "slug": "drone-telemetry-control",
+    "name": "Drone Telemetry and Control",
+    "category": "AI & Advanced Systems",
+    "difficulty": "advanced",
+    "hours": [
+      16,
+      30
+    ],
+    "description": "Explore the C-DAC drone kit’s flight controller: read telemetry, configure it and understand control loops – flight only after staff approval.",
+    "objectives": [
+      "Read telemetry (attitude, battery, GPS) from a flight controller",
+      "Understand PID attitude control",
+      "Follow drone safety procedures"
+    ],
+    "prerequisites": [
+      "Electronics and programming experience",
+      "Completion of the lab’s drone safety briefing"
+    ],
+    "hardware_software": [
+      "C-DAC drone kit with its supplied controller and software (lab use)",
+      "Ground-control software supplied with the kit"
+    ],
+    "steps": [
+      "Inventory the kit\nWith staff, list what the kit contains and read its manuals.",
+      "Bench setup\nWith propellers removed, connect the flight controller to the ground-control software.",
+      "Telemetry\nRecord attitude and battery readings while tilting the frame by hand.",
+      "Review\nStudy the PID settings; any flight test only in an approved area with staff present."
+    ],
+    "outcome": "Live telemetry from the flight controller and a written understanding of its control settings.",
+    "testing": [
+      "Tilt the frame and confirm the attitude display follows",
+      "Check battery voltage readings against a meter"
+    ],
+    "safety": [
+      "Propellers OFF for all bench work.",
+      "No flying without staff approval, an approved area and applicable permissions.",
+      "Handle LiPo batteries per the kit instructions."
+    ],
+    "extensions": [
+      "Log telemetry and plot it after a supervised flight",
+      "Study failsafe settings"
+    ],
+    "components": [
+      {
+        "audit_row": "S14",
+        "item": "C-DAC Drone Kit",
+        "qty": 1,
+        "note": "Lab-use kit",
+        "available_at_audit": 3,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Quadcopter drone kit with telemetry data shown on a ground-control screen",
+    "external": [],
+    "verification": "Verify the kit contents, its software and the safety and permission requirements before any flight.",
+    "catalogue_key": "project-catalogue-2026-10:20",
+    "image_path": "/projects/drone-telemetry-control.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 21,
+    "slug": "smart-parking-assistant",
+    "name": "Smart Parking Assistant",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Help a driver park: an ultrasonic sensor lights green, yellow and red LEDs and beeps as a car gets closer.",
+    "objectives": [
+      "Measure distance continuously",
+      "Map distance bands to indicators",
+      "Design clear user feedback"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, ultrasonic sensor, LEDs, buzzer",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nUltrasonic sensor, three LEDs with resistors and a buzzer.",
+      "Bands\nGreen above 50 cm, yellow 20–50 cm, red and fast beeping below 20 cm.",
+      "Smooth\nAverage several readings to avoid flicker."
+    ],
+    "outcome": "A toy car approaching the sensor changes the lights and beeps at the right distances.",
+    "testing": [
+      "Check each band with a ruler",
+      "Move an object slowly and confirm no flicker between bands"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Show the distance on an LCD",
+      "Count free parking slots with several sensors"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C79",
+        "item": "Ultra Sonic Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 3,
+        "note": "Green / yellow / red",
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 3,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C54",
+        "item": "PIEZ0 Buzzer",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Car approaching a wall-mounted ultrasonic sensor with green, yellow and red distance lights",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:21",
+    "image_path": "/projects/smart-parking-assistant.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 22,
+    "slug": "automatic-door-prototype",
+    "name": "Automatic Door Prototype",
+    "category": "Sensors & Automation",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "A model door that opens with a servo when a PIR sensor detects someone approaching, and closes after a delay.",
+    "objectives": [
+      "Use a PIR motion sensor",
+      "Control a servo smoothly",
+      "Design timed state machines"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, PIR sensor, SG90 servo",
+      "Cardboard or foam-board door model (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Build the model\nMake a small door on a hinge with the servo horn attached.",
+      "Wire\nPIR output to a digital pin; servo signal to a PWM pin.",
+      "Program\nStates: closed → opening → open (5 s) → closing; restart the timer if motion continues."
+    ],
+    "outcome": "The model door opens when a hand approaches and closes a few seconds after it leaves.",
+    "testing": [
+      "Approach from different angles and distances",
+      "Check the door never closes while motion continues"
+    ],
+    "safety": [
+      "Keep fingers clear of the hinge while the servo moves.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Add RFID so only authorised cards open it",
+      "Count people entering"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C55",
+        "item": "PIR Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C63",
+        "item": "SG90 Servo Motor",
+        "qty": 1,
+        "note": "Door actuator",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Model sliding door with a motion sensor above it and a servo opening it",
+    "external": [
+      "Cardboard or foam-board door model"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:22",
+    "image_path": "/projects/automatic-door-prototype.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 23,
+    "slug": "gas-leakage-alert",
+    "name": "Gas Leakage Alert",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Raise an alarm when an MQ-series gas sensor reading crosses a set threshold.",
+    "objectives": [
+      "Use a heated MQ gas sensor",
+      "Set and test thresholds",
+      "Build a latching alarm"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, MQ-series gas sensor, buzzer, LEDs",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nSensor AO to A0; buzzer and LEDs to outputs.",
+      "Warm up\nRun the sensor for several minutes and note the clean-air reading.",
+      "Threshold\nSet an alarm level well above clean air.",
+      "Alarm\nRed LED and buzzer until the reading falls back, then green."
+    ],
+    "outcome": "Exposing the sensor to a little sanitiser vapour triggers the alarm, which clears in clean air.",
+    "testing": [
+      "Log clean-air readings for five minutes",
+      "Test with sanitiser vapour (never fuel gas)"
+    ],
+    "safety": [
+      "Never release LPG, butane or other flammable gas to test.",
+      "The sensor heater is hot.",
+      "Teaching model only – not a certified gas detector."
+    ],
+    "extensions": [
+      "Send an SMS with the GSM module",
+      "Switch an exhaust fan with a relay"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C45",
+        "item": "MQ -Series Gas Sensor Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C54",
+        "item": "PIEZ0 Buzzer",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "MQ gas sensor module with a warning buzzer and red alert LED",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:23",
+    "image_path": "/projects/gas-leakage-alert.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 24,
+    "slug": "temperature-controlled-fan",
+    "name": "Temperature-Controlled Fan",
+    "category": "Sensors & Automation",
+    "difficulty": "intermediate",
+    "hours": [
+      4,
+      8
+    ],
+    "description": "Run a small DC fan faster as the temperature rises, using PWM through a MOSFET module.",
+    "objectives": [
+      "Read an analogue temperature sensor",
+      "Drive a motor with PWM and a MOSFET",
+      "Map temperature to speed"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Breadboard wiring and reading a module pin-out"
+    ],
+    "hardware_software": [
+      "Arduino Uno, temperature sensor, IRF520 MOSFET module, small DC motor, 1N4007 diode, 18650 cells",
+      "Small propeller/fan blade for the motor (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire the sensor\nTemperature sensor output to A0; convert to °C.",
+      "Wire the motor\nMotor powered from the cells through the MOSFET module; flyback diode across the motor.",
+      "Control\nOff below 28 °C, then increase PWM duty with temperature up to full speed at 35 °C."
+    ],
+    "outcome": "The fan speeds up when the sensor is warmed by hand and slows as it cools.",
+    "testing": [
+      "Warm the sensor and log temperature vs PWM duty",
+      "Confirm the motor stops below the lower threshold"
+    ],
+    "safety": [
+      "Always fit the flyback diode across the motor.",
+      "Insert 18650 cells with the correct polarity, never short them, and charge them only with the lab charger.",
+      "Keep fingers away from the spinning blade."
+    ],
+    "extensions": [
+      "Show temperature and speed on an LCD",
+      "Use the thermistor module and compare sensors"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C73",
+        "item": "Temperature Sensor (NMP36)(BLACK)",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C43",
+        "item": "MOSFET Transistors(IRF520)",
+        "qty": 1,
+        "note": "IRF520 module",
+        "available_at_audit": 4,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C65",
+        "item": "Small DC Motor(6/9V)",
+        "qty": 1,
+        "note": "Fan motor",
+        "available_at_audit": 7,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C21",
+        "item": "DIODES(IN4007)",
+        "qty": 1,
+        "note": "Flyback diode",
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C11",
+        "item": "Battery(18650-PC4) Blossom (Green & Purple)",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 6,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C15",
+        "item": "Cell Holder-2 18659 2",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Small DC fan driven by a MOSFET module with a temperature sensor and speed graph",
+    "external": [
+      "Small propeller or fan blade for the motor shaft"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:24",
+    "image_path": "/projects/temperature-controlled-fan.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 25,
+    "slug": "light-activated-lighting",
+    "name": "Light-Activated Lighting",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      2,
+      4
+    ],
+    "description": "Turn LEDs on automatically when it gets dark, using an LDR light sensor.",
+    "objectives": [
+      "Read a light-dependent resistor module",
+      "Use thresholds with hysteresis",
+      "Control several outputs"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, LDR module, LEDs",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nLDR module output to A0 (or DO); three LEDs with resistors.",
+      "Measure\nPrint readings in bright light and when covered.",
+      "Control\nLEDs on below the dark threshold, off above the light threshold."
+    ],
+    "outcome": "Covering the sensor turns the lights on; uncovering it turns them off without flicker.",
+    "testing": [
+      "Test at dusk-like light levels",
+      "Confirm no flicker near the threshold"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Dim the LEDs gradually with PWM",
+      "Combine with a PIR so lights only turn on when someone is present"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C36",
+        "item": "LDR module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 3,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 3,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "LDR light sensor switching on LED lamps as day turns to night",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:25",
+    "image_path": "/projects/light-activated-lighting.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 26,
+    "slug": "vibration-monitoring",
+    "name": "Vibration Monitoring",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      3,
+      6
+    ],
+    "description": "Detect and measure vibration with an MPU-6050 accelerometer, using a vibration motor as a test source.",
+    "objectives": [
+      "Read an I2C accelerometer",
+      "Compute vibration magnitude",
+      "Detect events above a threshold"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "I2C basics"
+    ],
+    "hardware_software": [
+      "Arduino Uno, MPU-6050, vibration motor",
+      "Arduino IDE on a laptop and Serial Plotter"
+    ],
+    "steps": [
+      "Wire\nMPU-6050 on I2C (SDA/SCL); vibration motor driven through a transistor.",
+      "Read\nPlot X/Y/Z acceleration in the Serial Plotter.",
+      "Detect\nCompute the change in acceleration magnitude and flag events above a threshold.",
+      "Test\nSwitch the vibration motor on and off next to the sensor."
+    ],
+    "outcome": "The plot shows clear spikes when the motor vibrates and the program reports each event.",
+    "testing": [
+      "Compare readings with the motor on and off",
+      "Tap the bench and check detection sensitivity"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Compute vibration frequency with an FFT",
+      "Log events to an SD card"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C44",
+        "item": "MPU 6050",
+        "qty": 1,
+        "note": "Accelerometer used as vibration sensor",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C84",
+        "item": "Vibration Motor",
+        "qty": 1,
+        "note": "Test vibration source",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "MPU-6050 accelerometer on a vibrating surface with a waveform of vibration spikes",
+    "external": [],
+    "verification": "The audit lists no dedicated vibration sensor; confirm the MPU-6050 module works for this before publishing as buildable.",
+    "catalogue_key": "project-catalogue-2026-10:26",
+    "image_path": "/projects/vibration-monitoring.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 27,
+    "slug": "gps-tracking-prototype",
+    "name": "GPS Tracking Prototype",
+    "category": "Sensors & Automation",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "Read latitude, longitude and time from a NEO-6M GPS module and show them on an LCD.",
+    "objectives": [
+      "Parse NMEA sentences",
+      "Use a GPS library",
+      "Understand satellite fix and accuracy"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Serial communication"
+    ],
+    "hardware_software": [
+      "Arduino Uno, NEO-6M GPS with antenna, 16×2 LCD with I2C adapter",
+      "Arduino IDE on a laptop with TinyGPS++"
+    ],
+    "steps": [
+      "Wire\nGPS TX to a SoftwareSerial RX pin; LCD on I2C.",
+      "Raw data\nPrint NMEA sentences to the Serial Monitor.",
+      "Parse\nUse TinyGPS++ to extract position, satellites and time.",
+      "Display\nShow coordinates on the LCD; test outdoors or by a window."
+    ],
+    "outcome": "The LCD shows the current coordinates once the module has a satellite fix.",
+    "testing": [
+      "Note time to first fix outdoors",
+      "Compare coordinates with a phone map"
+    ],
+    "safety": [
+      "Test outdoors only in safe, permitted areas.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Send location by SMS with the GSM module",
+      "Log a route and plot it on a map"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C48",
+        "item": "Neo6m GPS",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 4,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "NEO-6M GPS module receiving satellite signals with a location pin on a map",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:27",
+    "image_path": "/projects/gps-tracking-prototype.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 28,
+    "slug": "digital-notice-display",
+    "name": "Digital Notice or Status Display",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      3,
+      6
+    ],
+    "description": "A 16×2 LCD notice board that scrolls messages and pages through them with pushbuttons.",
+    "objectives": [
+      "Drive a character LCD over I2C",
+      "Scroll text",
+      "Handle button input with debouncing"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, 16×2 LCD, I2C adapter, pushbuttons",
+      "Arduino IDE on a laptop with LiquidCrystal_I2C"
+    ],
+    "steps": [
+      "Wire\nLCD through the I2C adapter; two pushbuttons to digital pins.",
+      "Messages\nStore several notices in an array.",
+      "Scroll\nScroll long messages across the top line.",
+      "Navigate\nNext/previous buttons change the message."
+    ],
+    "outcome": "The display scrolls readable notices and buttons switch between them.",
+    "testing": [
+      "Check every message displays fully",
+      "Press buttons rapidly and confirm one change per press"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Update messages over Bluetooth",
+      "Show lab equipment status"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C58",
+        "item": "Pushbutton",
+        "qty": 2,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "16×2 LCD notice board showing a scrolling lab message",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:28",
+    "image_path": "/projects/digital-notice-display.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 29,
+    "slug": "electronic-dice",
+    "name": "Electronic Dice",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      2,
+      4
+    ],
+    "description": "Press a button to roll: seven LEDs show a random dice face.",
+    "objectives": [
+      "Generate random numbers",
+      "Drive LED patterns",
+      "Debounce a pushbutton"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, 7 LEDs, resistors, pushbutton",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Layout\nArrange seven LEDs in the dice pattern on the breadboard.",
+      "Wire\nEach LED through a resistor to a digital pin; pushbutton with internal pull-up.",
+      "Program\nOn press, animate briefly, then show a random face from 1 to 6."
+    ],
+    "outcome": "Each press shows a random dice face with all six faces appearing over many rolls.",
+    "testing": [
+      "Roll 120 times and count each face",
+      "Check every LED works"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Two dice with a total",
+      "Show the result on the LCD"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 7,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 7,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C58",
+        "item": "Pushbutton",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Seven LEDs on a breadboard arranged as a dice face showing five, with a pushbutton",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:29",
+    "image_path": "/projects/electronic-dice.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 30,
+    "slug": "touch-controlled-switch",
+    "name": "Touch-Controlled Switch",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      2,
+      4
+    ],
+    "description": "Toggle a light with a capacitive touch sensor.",
+    "objectives": [
+      "Read a touch sensor module",
+      "Implement a toggle (edge detection)",
+      "Avoid repeated triggers"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, touch sensor module, LED",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Wire\nTouch sensor output to a digital pin; LED with resistor.",
+      "Toggle\nChange the LED state on each new touch (rising edge).",
+      "Refine\nIgnore touches within 200 ms of the last one."
+    ],
+    "outcome": "Each tap turns the LED on or off reliably.",
+    "testing": [
+      "Tap 20 times and confirm 20 toggles",
+      "Hold a finger on the pad and confirm only one toggle"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Long-press to dim",
+      "Switch a low-voltage load through a relay"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C76",
+        "item": "Touch Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Finger tapping a capacitive touch sensor pad that switches on a light",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:30",
+    "image_path": "/projects/touch-controlled-switch.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 31,
+    "slug": "smart-dustbin-prototype",
+    "name": "Smart Dustbin Prototype",
+    "category": "Sensors & Automation",
+    "difficulty": "intermediate",
+    "hours": [
+      6,
+      12
+    ],
+    "description": "A bin whose lid opens with a servo when a hand comes near the ultrasonic sensor.",
+    "objectives": [
+      "Detect proximity",
+      "Actuate a mechanism with a servo",
+      "Build a reliable mechanical linkage"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, ultrasonic sensor, SG90 servo",
+      "Small bin with a hinged lid (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Mechanism\nAttach the servo so its horn lifts the lid.",
+      "Sensor\nMount the ultrasonic sensor on the front of the bin.",
+      "Program\nOpen when something is closer than 20 cm; close after 3 s with no detection."
+    ],
+    "outcome": "The lid opens as a hand approaches and closes by itself.",
+    "testing": [
+      "Approach 20 times and count successful openings",
+      "Check the lid closes fully every time"
+    ],
+    "safety": [
+      "Keep fingers clear of the lid hinge.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Add a fill-level sensor inside",
+      "Report when the bin is full"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C79",
+        "item": "Ultra Sonic Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 23,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C63",
+        "item": "SG90 Servo Motor",
+        "qty": 1,
+        "note": "Lid actuator",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C80",
+        "item": "Ultrasonic holder",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Dustbin with an ultrasonic sensor and a servo lifting the lid as a hand approaches",
+    "external": [
+      "Small bin with a hinged lid"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:31",
+    "image_path": "/projects/smart-dustbin-prototype.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 32,
+    "slug": "water-level-indicator",
+    "name": "Water-Level Indicator",
+    "category": "Sensors & Automation",
+    "difficulty": "beginner",
+    "hours": [
+      3,
+      6
+    ],
+    "description": "Show water levels in a container with LEDs and sound a buzzer when it is about to overflow.",
+    "objectives": [
+      "Sense water with conductive probes",
+      "Show levels with LEDs",
+      "Add an overflow alarm"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "Arduino Uno, rain-sensor board used as a wet/dry probe, LEDs, buzzer",
+      "Container for water (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Probe\nPlace the sensing board (or probe wires) at the levels to detect.",
+      "Wire\nProbe output to Arduino; LEDs for each level; buzzer.",
+      "Program\nLight LEDs as levels are reached; buzz at the top level."
+    ],
+    "outcome": "LEDs climb as the container fills and the buzzer sounds near the top.",
+    "testing": [
+      "Fill slowly and record when each level triggers",
+      "Empty and confirm the LEDs turn off"
+    ],
+    "safety": [
+      "Keep the Arduino and wiring dry and above the container.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Switch a pump off automatically",
+      "Send the level over Wi-Fi"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C59",
+        "item": "Rain Sensor",
+        "qty": 1,
+        "note": "Used as a wet/dry probe",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C39",
+        "item": "LED's (Bright White,RGB,Red Green9, Yellow9, Blue)",
+        "qty": 3,
+        "note": null,
+        "available_at_audit": 50,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C60",
+        "item": "Resistance (13 Pkd)",
+        "qty": 3,
+        "note": null,
+        "available_at_audit": 131,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C54",
+        "item": "PIEZ0 Buzzer",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Water tank with level probes and a column of LEDs showing the fill level",
+    "external": [
+      "Container for water"
+    ],
+    "verification": "No dedicated water-level sensor is listed in the audit; confirm a suitable multi-level probe before marking this buildable.",
+    "catalogue_key": "project-catalogue-2026-10:32",
+    "image_path": "/projects/water-level-indicator.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 33,
+    "slug": "wireless-sensor-dashboard",
+    "name": "Wireless Sensor Dashboard",
+    "category": "Sensors & Automation",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Stream temperature, sound and light readings from an ESP32 to a live web dashboard with charts.",
+    "objectives": [
+      "Serve JSON data from an ESP32",
+      "Build a small web dashboard",
+      "Handle several sensors on one board"
+    ],
+    "prerequisites": [
+      "Arduino IDE with ESP32 board support",
+      "Basic HTML/JavaScript"
+    ],
+    "hardware_software": [
+      "ESP32, temperature sensor, sound sensor, LDR module",
+      "Arduino IDE (ESP32 core), Wi-Fi, browser"
+    ],
+    "steps": [
+      "Wire\nThree sensors to ESP32 ADC pins (3.3 V).",
+      "API\nServe /data returning JSON with the latest readings.",
+      "Dashboard\nServe a page that polls /data and updates three charts.",
+      "Polish\nShow units, last-update time and connection status."
+    ],
+    "outcome": "A browser on the same network shows three live charts that react to warmth, noise and light.",
+    "testing": [
+      "Change each condition and watch its chart respond",
+      "Disconnect Wi-Fi and confirm the page shows “offline”"
+    ],
+    "safety": [
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Store history in a database",
+      "Add alerts when values cross limits"
+    ],
+    "components": [
+      {
+        "audit_row": "C27",
+        "item": "ESP32",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C73",
+        "item": "Temperature Sensor (NMP36)(BLACK)",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C70",
+        "item": "Sound Sensor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C36",
+        "item": "LDR module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C42",
+        "item": "Micro Usb Cable",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "ESP32 with sensors streaming live charts to a laptop dashboard over Wi-Fi",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:33",
+    "image_path": "/projects/wireless-sensor-dashboard.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 34,
+    "slug": "robot-teleoperation-dashboard",
+    "name": "Robot Teleoperation Dashboard",
+    "category": "Sensors & Automation",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "Drive the lab’s Twin Bot remotely from a web dashboard with live status.",
+    "objectives": [
+      "Design a control interface",
+      "Send commands over a network link",
+      "Add safety stops"
+    ],
+    "prerequisites": [
+      "Programming experience (Python or JavaScript)",
+      "Networking basics"
+    ],
+    "hardware_software": [
+      "Twin Bot (lab use), laptop",
+      "Platform SDK/firmware supplied with the robot, web framework of choice"
+    ],
+    "steps": [
+      "Investigate\nWith staff, find how the Twin Bot can be commanded (Wi-Fi, Bluetooth or serial).",
+      "Bridge\nWrite a small server that forwards commands to the robot.",
+      "Dashboard\nAdd arrow controls, speed slider and an emergency stop.",
+      "Safety\nStop the robot if no command arrives within one second."
+    ],
+    "outcome": "The robot can be driven from the dashboard and always stops when the connection drops.",
+    "testing": [
+      "Measure command latency",
+      "Disconnect the laptop and confirm the robot stops"
+    ],
+    "safety": [
+      "Operate in a clear area with someone watching the robot.",
+      "Lab use only."
+    ],
+    "extensions": [
+      "Stream a camera view",
+      "Add waypoint driving"
+    ],
+    "components": [
+      {
+        "audit_row": "S13",
+        "item": "Twin Bot",
+        "qty": 1,
+        "note": "Lab-use robot",
+        "available_at_audit": 6,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Laptop teleoperation dashboard with arrow controls driving a robot over Wi-Fi",
+    "external": [],
+    "verification": "Confirm how the Twin Bot can be controlled remotely (its controller and network interface).",
+    "catalogue_key": "project-catalogue-2026-10:34",
+    "image_path": "/projects/robot-teleoperation-dashboard.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 35,
+    "slug": "robotic-pick-and-place",
+    "name": "Robotic Pick-and-Place",
+    "category": "Interdisciplinary",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "Program the 6-DoF arm to move objects between marked locations reliably.",
+    "objectives": [
+      "Plan joint trajectories",
+      "Sequence grasp and release",
+      "Measure repeatability"
+    ],
+    "prerequisites": [
+      "Completion of the Servo-Based Robotic Arm project or equivalent",
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)"
+    ],
+    "hardware_software": [
+      "6 DoF Mini Arm (lab use), Arduino Uno, servo power supply",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Define positions\nMark pick and place spots and record joint angles for each.",
+      "Trajectory\nMove through safe approach poses above each spot.",
+      "Grip\nClose the gripper gently and check the object is held.",
+      "Repeat\nRun a sequence that moves three objects."
+    ],
+    "outcome": "The arm moves three objects to their targets in sequence without dropping them.",
+    "testing": [
+      "Run the sequence ten times and record placement error",
+      "Try objects of different sizes"
+    ],
+    "safety": [
+      "Keep hands outside the arm’s reach while it runs.",
+      "Lab use only."
+    ],
+    "extensions": [
+      "Detect object positions with a camera",
+      "Sort objects by colour"
+    ],
+    "components": [
+      {
+        "audit_row": "S2",
+        "item": "6 DoF Mini Arm",
+        "qty": 1,
+        "note": "Lab-use equipment",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C4",
+        "item": "AC/DC Adapter-SMPS-60W-F005",
+        "qty": 1,
+        "note": "Servo power supply – check voltage",
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Robotic arm picking a block from one marked spot and placing it on another",
+    "external": [
+      "Small test objects (foam blocks)"
+    ],
+    "verification": "Confirm whether the 6 DoF Mini Arm includes its own servo controller and the voltage its servos need.",
+    "catalogue_key": "project-catalogue-2026-10:35",
+    "image_path": "/projects/robotic-pick-and-place.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 36,
+    "slug": "3d-printed-assistive-device",
+    "name": "3D-Printed Assistive Device",
+    "category": "Interdisciplinary",
+    "difficulty": "intermediate",
+    "hours": [
+      8,
+      20
+    ],
+    "description": "Design and print a simple assistive aid, such as an easy-grip utensil handle or a key turner.",
+    "objectives": [
+      "Apply user-centred design",
+      "Iterate a CAD design from feedback",
+      "Prepare reliable prints"
+    ],
+    "prerequisites": [
+      "Basic CAD",
+      "Interest in assistive technology"
+    ],
+    "hardware_software": [
+      "3D printer (lab use), screws from the screw box",
+      "CAD software and a slicer"
+    ],
+    "steps": [
+      "Define the need\nChoose a task and list the user’s requirements.",
+      "Design\nModel the device with comfortable, rounded grips.",
+      "Prototype\nPrint a quick low-infill version and test the fit.",
+      "Refine\nImprove the design and print the final version."
+    ],
+    "outcome": "A printed device that makes the chosen task easier, with documented design changes.",
+    "testing": [
+      "Ask three testers to use it and record feedback",
+      "Check strength by applying normal working force"
+    ],
+    "safety": [
+      "Printer parts are hot – do not touch during printing.",
+      "Only print with staff permission.",
+      "Remove sharp edges before testing."
+    ],
+    "extensions": [
+      "Use flexible TPU for soft grips",
+      "Publish the design files openly"
+    ],
+    "components": [
+      {
+        "audit_row": "S12",
+        "item": "3d Printer",
+        "qty": 1,
+        "note": "Lab-use equipment",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "C86",
+        "item": "Wefaa Robatics (Screw box)",
+        "qty": 1,
+        "note": "Fasteners if needed",
+        "available_at_audit": 5,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "3D printer with an ergonomic printed grip aid",
+    "external": [
+      "PLA or TPU filament"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:36",
+    "image_path": "/projects/3d-printed-assistive-device.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 37,
+    "slug": "real-time-clock-display",
+    "name": "Real-Time Clock Display",
+    "category": "Interdisciplinary",
+    "difficulty": "beginner",
+    "hours": [
+      3,
+      6
+    ],
+    "description": "Show the time and date from a DS3231 real-time clock module on a 16×2 LCD.",
+    "objectives": [
+      "Use an I2C RTC module",
+      "Set and keep time across power cycles",
+      "Format time and date"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "I2C basics"
+    ],
+    "hardware_software": [
+      "Arduino Uno, DS3231 RTC module (listed as “DC 3231”), 16×2 LCD with I2C adapter",
+      "Arduino IDE on a laptop with RTClib"
+    ],
+    "steps": [
+      "Wire\nRTC and LCD share the I2C bus.",
+      "Set time\nSet the clock once from the computer’s time.",
+      "Display\nShow HH:MM:SS on line 1 and the date on line 2.",
+      "Check\nUnplug for a minute and confirm the time is kept."
+    ],
+    "outcome": "A clock that keeps correct time even after power is removed.",
+    "testing": [
+      "Compare with a phone clock after 24 hours",
+      "Power-cycle and confirm the time is retained"
+    ],
+    "safety": [
+      "Fit the RTC’s coin cell with the correct polarity.",
+      "Disconnect power before changing any wiring."
+    ],
+    "extensions": [
+      "Add alarms with a buzzer",
+      "Show temperature from the DS3231’s sensor"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C20",
+        "item": "DC 3231-Real Time Clock Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C6",
+        "item": "Alphanumeric LCD",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 13,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C62",
+        "item": "I2C LCB Adapter Module",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 3,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Real-time clock module beside an LCD showing the time and date",
+    "external": [],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:37",
+    "image_path": "/projects/real-time-clock-display.svg",
+    "status_at_audit": "available"
+  },
+  {
+    "n": 38,
+    "slug": "wireless-heart-rate-logger",
+    "name": "Wireless Heart-Rate Data Logger",
+    "category": "Interdisciplinary",
+    "difficulty": "advanced",
+    "hours": [
+      8,
+      16
+    ],
+    "description": "Log pulse readings from a heart-rate sensor on an ESP32 and plot them in a browser over Wi-Fi.",
+    "objectives": [
+      "Sample a biosignal on the ESP32",
+      "Transmit readings wirelessly",
+      "Store and visualise time-series data"
+    ],
+    "prerequisites": [
+      "Arduino IDE with ESP32 board support",
+      "Basic web development"
+    ],
+    "hardware_software": [
+      "ESP32, heart rate monitor module",
+      "Arduino IDE (ESP32 core), browser"
+    ],
+    "steps": [
+      "Interface\nCheck the sensor output range is safe for the ESP32’s 3.3 V input.",
+      "Sample\nRead the signal at a steady rate and detect beats.",
+      "Transmit\nServe BPM and recent samples as JSON.",
+      "Visualise\nPlot BPM over time in the browser and allow CSV download."
+    ],
+    "outcome": "A browser shows a live pulse graph and BPM history that can be downloaded.",
+    "testing": [
+      "Compare BPM with a manual count",
+      "Check the data stream for gaps over ten minutes"
+    ],
+    "safety": [
+      "Education only – not a medical device.",
+      "Do not connect any sensor powered from mains to the body."
+    ],
+    "extensions": [
+      "Add a battery and make it wearable",
+      "Detect and flag noisy segments"
+    ],
+    "components": [
+      {
+        "audit_row": "C27",
+        "item": "ESP32",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C31",
+        "item": "Heart Rate Monitor",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C42",
+        "item": "Micro Usb Cable",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 2,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Heart-rate sensor with an ESP32 sending a pulse graph wirelessly to a laptop",
+    "external": [],
+    "verification": "Verify the heart-rate module’s interface and that its output is safe for the ESP32’s 3.3 V inputs.",
+    "catalogue_key": "project-catalogue-2026-10:38",
+    "image_path": "/projects/wireless-heart-rate-logger.svg",
+    "status_at_audit": "requires_verification"
+  },
+  {
+    "n": 39,
+    "slug": "smart-waste-segregation",
+    "name": "Smart Waste Segregation Prototype",
+    "category": "Interdisciplinary",
+    "difficulty": "advanced",
+    "hours": [
+      12,
+      24
+    ],
+    "description": "An experimental sorter that separates wet from dry items using a moisture probe and IR detection, with servo flaps.",
+    "objectives": [
+      "Combine sensors to classify objects",
+      "Design a sorting mechanism",
+      "Evaluate accuracy and limitations honestly"
+    ],
+    "prerequisites": [
+      "Basic Arduino programming (setup/loop, digitalRead/Write, Serial Monitor)",
+      "Basic mechanical design"
+    ],
+    "hardware_software": [
+      "Arduino Uno, IR sensor, soil-moisture sensor used as a wet/dry probe, 2 SG90 servos",
+      "Sorting chute and bins (not stocked)",
+      "Arduino IDE on a laptop"
+    ],
+    "steps": [
+      "Mechanism\nBuild a chute with a flap that tips items left or right.",
+      "Detect\nIR sensor detects an item arriving; the moisture probe tests whether it is wet.",
+      "Sort\nServos tip wet items to one bin and dry items to the other.",
+      "Evaluate\nTest a set of sample items and record accuracy."
+    ],
+    "outcome": "Wet and dry test items are sorted into separate bins most of the time, with documented failure cases.",
+    "testing": [
+      "Sort 20 labelled items and compute accuracy",
+      "Note which materials the sensors cannot tell apart"
+    ],
+    "safety": [
+      "Use clean, safe test items only – no real waste, glass or sharp objects.",
+      "Keep water away from the electronics."
+    ],
+    "extensions": [
+      "Add metal detection with an inductive sensor",
+      "Try camera-based classification on the Jetson"
+    ],
+    "components": [
+      {
+        "audit_row": "C10",
+        "item": "Arduino Uno Smd Ch340",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 31,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C33",
+        "item": "IR sensor",
+        "qty": 1,
+        "note": "Item detection",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C66",
+        "item": "Soil sensor",
+        "qty": 1,
+        "note": "Wet/dry probe",
+        "available_at_audit": 1,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C63",
+        "item": "SG90 Servo Motor",
+        "qty": 2,
+        "note": "Sorting flaps",
+        "available_at_audit": 17,
+        "borrowable": true
+      },
+      {
+        "audit_row": "C12",
+        "item": "Bread Board",
+        "qty": 1,
+        "note": null,
+        "available_at_audit": 21,
+        "borrowable": true
+      }
+    ],
+    "image_alt": "Sorting chute with a sensor and servo flaps directing items into wet and dry bins",
+    "external": [
+      "Sorting chute and two bins"
+    ],
+    "verification": null,
+    "catalogue_key": "project-catalogue-2026-10:39",
+    "image_path": "/projects/smart-waste-segregation.svg",
+    "status_at_audit": "requires_external"
+  },
+  {
+    "n": 40,
+    "slug": "indoor-robot-localization",
+    "name": "Indoor Robot Localization",
+    "category": "Interdisciplinary",
+    "difficulty": "advanced",
+    "hours": [
+      16,
+      30
+    ],
+    "description": "Estimate the Twin Bot’s position on a known map using a 2D LiDAR and a localization algorithm (e.g. AMCL).",
+    "objectives": [
+      "Mount and calibrate a LiDAR on a robot",
+      "Run probabilistic localization",
+      "Evaluate pose accuracy"
+    ],
+    "prerequisites": [
+      "Completion of LiDAR mapping (project 19) or ROS experience",
+      "Probability basics"
+    ],
+    "hardware_software": [
+      "Twin Bot, 2D LiDAR and mini PC (lab use)",
+      "ROS, LiDAR driver, map server, AMCL, RViz"
+    ],
+    "steps": [
+      "Mount\nFix the LiDAR and mini PC securely on the Twin Bot.",
+      "Map\nBuild or load a map of the room.",
+      "Localise\nRun AMCL and drive the robot; watch the particle cloud converge.",
+      "Evaluate\nCompare estimated positions with marked floor positions."
+    ],
+    "outcome": "The robot’s estimated position on the map stays within a few centimetres of its real position.",
+    "testing": [
+      "Drive to five marked points and record position error",
+      "Kidnap test: move the robot by hand and check recovery"
+    ],
+    "safety": [
+      "Operate in a clear area at low speed.",
+      "Never look into the LiDAR emitter.",
+      "Lab use only."
+    ],
+    "extensions": [
+      "Add autonomous navigation to goals",
+      "Fuse wheel odometry and an IMU"
+    ],
+    "components": [
+      {
+        "audit_row": "S13",
+        "item": "Twin Bot",
+        "qty": 1,
+        "note": "Lab-use robot",
+        "available_at_audit": 6,
+        "borrowable": false
+      },
+      {
+        "audit_row": "S4",
+        "item": "2D Lidar Sensor",
+        "qty": 1,
+        "note": "Lab-use sensor",
+        "available_at_audit": 1,
+        "borrowable": false
+      },
+      {
+        "audit_row": "S8",
+        "item": "Tiny HP Pro",
+        "qty": 1,
+        "note": "Computing platform",
+        "available_at_audit": 1,
+        "borrowable": false
+      }
+    ],
+    "image_alt": "Robot with a LiDAR on top locating itself on an indoor floor-plan map",
+    "external": [],
+    "verification": "Confirm the LiDAR driver and a secure mounting on the Twin Bot before publishing as buildable.",
+    "catalogue_key": "project-catalogue-2026-10:40",
+    "image_path": "/projects/indoor-robot-localization.svg",
+    "status_at_audit": "requires_verification"
+  }
+]

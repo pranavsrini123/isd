@@ -107,11 +107,12 @@ begin
   perform t.eq('import: students cannot change is_requestable', (select is_requestable::text from public.inventory_items where id = piezo), 'false');
   perform t.as_run(adm, format('update public.inventory_items set is_requestable = true where id = %L returning 1', piezo));
 
-  -- readiness: lab-use-only stock does not count
+  -- readiness (0009): lab-use-only stock counts for in-lab builds, but is flagged as not borrowable
   select pc.project_id into plant from public.project_components pc where pc.item_id = soil limit 1;
   perform t.as_run(adm, format('update public.inventory_items set is_requestable = false where id = %L returning 1', soil));
-  perform t.eq('import: lab-use-only item counts 0 toward readiness',
-    (select available_qty::text from public.project_component_status where project_id = plant and item_id = soil), '0');
+  perform t.eq('import: lab-use-only item still counts toward readiness, flagged not borrowable',
+    (select (available_qty = (select available_qty from public.inventory_items where id = soil))::text || '/' || item_requestable::text
+       from public.project_component_status where project_id = plant and item_id = soil), 'true/false');
   perform t.as_run(adm, format('update public.inventory_items set is_requestable = true where id = %L returning 1', soil));
 
   -- ---- skip and reopen

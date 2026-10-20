@@ -129,11 +129,13 @@ export async function getProjectComponents(id) {
   return unwrap(await sb().from('project_component_status').select('*').eq('project_id', id).order('item_name'))
 }
 export async function projectCategories() {
-  const rows = unwrap(await sb().from('projects').select('category'))
+  const rows = unwrap(await sb().from('projects').select('category').neq('status', 'archived'))
   return [...new Set(rows.map((r) => r.category))].sort()
 }
 const PROJECT_FIELDS = ['name', 'slug', 'description', 'image_path', 'category', 'difficulty', 'est_hours_min',
-  'est_hours_max', 'instructions', 'documentation_url', 'github_url', 'video_url', 'learning_outcomes', 'status']
+  'est_hours_max', 'instructions', 'documentation_url', 'github_url', 'video_url', 'learning_outcomes', 'status',
+  'objectives', 'prerequisites', 'hardware_software', 'expected_outcome', 'testing_steps', 'safety_notes', 'extensions',
+  'external_requirements', 'verification_note', 'image_alt']
 export async function createProject(project) {
   const row = { ...pick(project, PROJECT_FIELDS), status: 'draft' }
   return unwrap(await sb().from('projects').insert(row).select('*').single())
@@ -254,6 +256,8 @@ export async function listActivity({ search = '', entity = '', page = 1, pageSiz
 export function imageUrl(path) {
   if (!path) return null
   if (/^https?:\/\//.test(path)) return path
+  // Static assets shipped with the app (e.g. /projects/<slug>.svg catalogue illustrations).
+  if (path.startsWith('/')) return path
   if (!supabase) return null
   return supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl
 }
@@ -335,4 +339,8 @@ export async function projectLinksNeedingReview() {
     .filter((p) => p.status !== 'archived')
     .map((p) => ({ ...p, links: comps.filter((c) => c.project_id === p.id).map((c) => ({ ...c, item: byItem[c.item_id] })) }))
     .sort((a, b) => Number(a.is_demo) - Number(b.is_demo) || a.name.localeCompare(b.name))
+}
+/** Items needed by several published projects, with live stock (admin only; RLS + view guard). */
+export async function componentDemand() {
+  return unwrap(await sb().from('component_demand').select('*').order('projects_count', { ascending: false }).order('item_name'))
 }

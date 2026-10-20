@@ -125,3 +125,29 @@ export function hoursLabel(min, max) {
   if (min != null && max != null && Number(min) !== Number(max)) return `${Number(min)}–${Number(max)} h`
   return `${Number(min ?? max)} h`
 }
+
+/** Project availability status (computed by get_ranked_projects) → label and badge tone. */
+export const AVAILABILITY = {
+  available: { label: 'Available to build', short: 'Available', tone: 'ok' },
+  partially_available: { label: 'Partially available', short: 'Partially available', tone: 'warn' },
+  requires_external: { label: 'Requires external components', short: 'Needs external parts', tone: 'info' },
+  temporarily_unavailable: { label: 'Temporarily unavailable', short: 'Unavailable', tone: 'bad' },
+  requires_verification: { label: 'Requires compatibility verification', short: 'Needs verification', tone: 'neutral' },
+}
+
+export const DURATION_FILTERS = [
+  { value: 'short', label: 'Up to 6 h' },
+  { value: 'medium', label: '6–12 h' },
+  { value: 'long', label: '12–24 h' },
+  { value: 'xl', label: 'More than 24 h' },
+]
+
+/** Duration bucket from the upper estimate (falls back to the lower one). */
+export function durationBucket(min, max) {
+  const h = Number(max ?? min)
+  if (max == null && min == null) return null
+  if (h <= 6) return 'short'
+  if (h <= 12) return 'medium'
+  if (h <= 24) return 'long'
+  return 'xl'
+}

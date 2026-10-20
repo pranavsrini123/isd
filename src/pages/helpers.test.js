@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseSteps } from './student/ProjectDetails'
+import { availabilityOf, parseSteps } from './student/ProjectDetails'
 import { toCsv } from './admin/Reports'
 
 describe('build instructions parser', () => {
@@ -54,5 +54,16 @@ describe('My requests: tabs and status → action mapping', () => {
     expect(keys({ status: 'rejected' })).toEqual(['again'])
     expect(keys({ status: 'returned' })).toEqual([])
     expect(keys({ status: 'cancelled' })).toEqual([])
+  })
+})
+
+describe('project availability status (mirrors _project_availability in SQL)', () => {
+  it('derives the status from readiness, external parts and verification', () => {
+    expect(availabilityOf({ n_required: 3, n_satisfied: 3 })).toBe('available')
+    expect(availabilityOf({ n_required: 3, n_satisfied: 3 }, ['SIM card'])).toBe('requires_external')
+    expect(availabilityOf({ n_required: 3, n_satisfied: 1 })).toBe('partially_available')
+    expect(availabilityOf({ n_required: 3, n_satisfied: 0 })).toBe('temporarily_unavailable')
+    expect(availabilityOf({ n_required: 3, n_satisfied: 3 }, [], 'Check the LiDAR driver')).toBe('requires_verification')
+    expect(availabilityOf({ n_required: 0, n_satisfied: 0 }, ['Filament'])).toBe('requires_external')
   })
 })

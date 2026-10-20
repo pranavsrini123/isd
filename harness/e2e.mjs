@@ -168,23 +168,25 @@ await check('inventory: one continuous scroll, no pagination, no duplicates', as
 await check('toggle: knob stays inside the track in both states (desktop + mobile)', async () => {
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 900 })
-    await go('/student/projects')
-    const sw = page.getByRole('switch').first()
+    await go('/student/request')
+    await page.getByRole('button', { name: /Add (another )?components?/ }).first().click()
+    const sw = page.getByRole('dialog').getByRole('switch').first()
     const geom = () => sw.evaluate((b) => {
       const track = b.querySelector('span'); const knob = track.querySelector('span')
       const t = track.getBoundingClientRect(); const k = knob.getBoundingClientRect()
       return { t: [t.left, t.right, t.top, t.bottom], k: [k.left, k.right, k.top, k.bottom], on: b.getAttribute('aria-checked') }
     })
     const inside = (g) => g.k[0] >= g.t[0] && g.k[1] <= g.t[1] && g.k[2] >= g.t[2] && g.k[3] <= g.t[3]
+    if (await sw.getAttribute('aria-checked') === 'true') { await sw.click(); await page.waitForTimeout(400) }
     const off = await geom()
     expect(off.on === 'false' && inside(off) && Math.abs(off.k[0] - off.t[0] - 2) < 1, `off state wrong ${JSON.stringify(off)}`)
     await sw.click(); await page.waitForTimeout(400)
     const on = await geom()
     expect(on.on === 'true' && inside(on) && Math.abs(on.t[1] - on.k[1] - 2) < 1, `on state wrong ${JSON.stringify(on)}`)
-    expect(page.url().includes('buildable=1'), 'state not applied')
     if (width === 390) await shot('toggle-mobile-on', false)
     await sw.click(); await page.waitForTimeout(400)
     expect(inside(await geom()), 'off again wrong')
+    await page.keyboard.press('Escape')
   }
   await page.setViewportSize({ width: 1440, height: 900 })
 })
@@ -195,9 +197,9 @@ await check('project library ranks buildable first', async () => {
   const t = await text()
   expect(t.indexOf('Weather Station') < t.indexOf('Obstacle Avoiding Robot'), 'ranking wrong')
   await shot('student-projects')
-  await page.getByText('Only show projects I can build now').click()
+  await page.getByLabel('Availability', { exact: true }).selectOption('available')
   await page.waitForTimeout(600)
-  expect(!(await text()).includes('Obstacle Avoiding Robot'), 'buildable filter failed')
+  expect(!(await text()).includes('Obstacle Avoiding Robot'), 'availability filter failed')
 })
 await check('project details shows 80% and missing L298N', async () => {
   await go('/student/projects')
@@ -211,7 +213,7 @@ await check('request flow from buildable project', async () => {
   await go('/student/projects')
   await page.getByRole('link', { name: /Weather Station/ }).click()
   await page.waitForTimeout(700)
-  await page.getByRole('button', { name: 'Request all components' }).click()
+  await page.getByRole('button', { name: 'Request components' }).click()
   await page.waitForURL('**/student/request')
   await page.waitForTimeout(700)
   expect((await text()).includes('Pre-filled from Weather Station'), 'not prefilled')

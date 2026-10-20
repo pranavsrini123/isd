@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, daysFromToday, formatDate, hoursLabel, initials, parseDate, readinessTone, relativeDue, stockStatus, toISODate } from './format'
+import { AVAILABILITY, durationBucket, addDays, daysFromToday, formatDate, hoursLabel, initials, parseDate, readinessTone, relativeDue, stockStatus, toISODate } from './format'
 
 describe('dates', () => {
   it('parses YYYY-MM-DD as a local calendar date (no UTC shift)', () => {
@@ -48,5 +48,21 @@ describe('stock and readiness helpers', () => {
     expect(hoursLabel(null, null)).toBe(null)
     expect(initials('Aarav Kumar Shah')).toBe('AS')
     expect(initials('')).toBe('?')
+  })
+})
+
+describe('project catalogue helpers', () => {
+  it('buckets durations by the upper estimate', () => {
+    expect(durationBucket(2, 4)).toBe('short')
+    expect(durationBucket(4, 8)).toBe('medium')
+    expect(durationBucket(12, 24)).toBe('long')
+    expect(durationBucket(16, 30)).toBe('xl')
+    expect(durationBucket(null, null)).toBe(null)
+    expect(durationBucket(5, null)).toBe('short')
+  })
+  it('labels every availability status', () => {
+    for (const k of ['available', 'partially_available', 'requires_external', 'temporarily_unavailable', 'requires_verification']) {
+      expect(AVAILABILITY[k].label).toBeTruthy()
+    }
   })
 })

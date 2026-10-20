@@ -16,7 +16,12 @@ import { Thumb } from '../../components/domain/Thumb'
 const EMPTY = {
   name: '', slug: '', description: '', category: 'General', difficulty: 'beginner', est_hours_min: '', est_hours_max: '',
   instructions: '', documentation_url: '', github_url: '', video_url: '', learning_outcomes: '', image_path: null,
+  objectives: '', prerequisites: '', hardware_software: '', expected_outcome: '', testing_steps: '', safety_notes: '',
+  extensions: '', external_requirements: '', verification_note: '', image_alt: '',
 }
+// Text-area fields stored as text[] in the database (one entry per line).
+const LIST_FIELDS = ['learning_outcomes', 'objectives', 'prerequisites', 'hardware_software', 'testing_steps', 'safety_notes', 'extensions', 'external_requirements']
+const toList = (s) => (s || '').split('\n').map((x) => x.trim()).filter(Boolean)
 const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
 const isUrl = (s) => !s || /^https:\/\/[^\s]+$/i.test(s)
 
@@ -42,7 +47,8 @@ export default function ProjectEditor() {
     if (!p) return
     setForm({
       ...EMPTY, ...Object.fromEntries(Object.entries(p).map(([k, v]) => [k, v ?? ''])),
-      image_path: p.image_path || null, learning_outcomes: (p.learning_outcomes || []).join('\n'),
+      image_path: p.image_path || null,
+      ...Object.fromEntries(LIST_FIELDS.map((k) => [k, (p[k] || []).join('\n')])),
     })
   }, [project.data])
   useEffect(() => {
@@ -60,6 +66,7 @@ export default function ProjectEditor() {
     if (mn !== null && (Number.isNaN(mn) || mn < 0 || mn > 999)) v.est_hours_min = '0–999'
     if (mx !== null && (Number.isNaN(mx) || mx < 0 || mx > 999)) v.est_hours_max = '0–999'
     if (mn !== null && mx !== null && mx < mn) v.est_hours_max = 'Must be ≥ minimum'
+    if (form.image_path && !/^(\/[\w./-]+|https:\/\/\S+|[\w-]+\/[\w./-]+)$/.test(form.image_path)) v.image_path = 'Upload an image, or use /projects/<file>.svg or an https:// link'
     for (const k of ['documentation_url', 'github_url', 'video_url']) if (!isUrl(form[k].trim())) v[k] = 'Use a full https:// link'
     setErrors(v)
     return Object.keys(v).length === 0
@@ -70,8 +77,10 @@ export default function ProjectEditor() {
     category: form.category.trim(), difficulty: form.difficulty,
     est_hours_min: form.est_hours_min === '' ? null : Number(form.est_hours_min), est_hours_max: form.est_hours_max === '' ? null : Number(form.est_hours_max),
     instructions: form.instructions.trim() || null, documentation_url: form.documentation_url.trim() || null,
-    github_url: form.github_url.trim() || null, video_url: form.video_url.trim() || null, image_path: form.image_path,
-    learning_outcomes: form.learning_outcomes.split('\n').map((s) => s.trim()).filter(Boolean),
+    github_url: form.github_url.trim() || null, video_url: form.video_url.trim() || null, image_path: form.image_path || null,
+    ...Object.fromEntries(LIST_FIELDS.map((k) => [k, toList(form[k])])),
+    expected_outcome: form.expected_outcome.trim() || null, verification_note: form.verification_note.trim() || null,
+    image_alt: form.image_alt.trim() || null,
   })
 
   async function save(nextStatus) {
@@ -137,13 +146,26 @@ export default function ProjectEditor() {
               <Textarea label="Description" value={form.description} onChange={set('description')} rows={3} maxLength={4000} className="sm:col-span-2" />
               <Textarea label="Build instructions" value={form.instructions} onChange={set('instructions')} rows={7} className="sm:col-span-2"
                 hint="One step per paragraph. Optional title on the first line of each step." />
-              <Textarea label="Learning outcomes" value={form.learning_outcomes} onChange={set('learning_outcomes')} rows={3} hint="One per line" className="sm:col-span-2" />
+              <Textarea label="Objectives" value={form.objectives} onChange={set('objectives')} rows={3} hint="One per line" className="sm:col-span-2" />
+              <Textarea label="Expected outcome" value={form.expected_outcome} onChange={set('expected_outcome')} rows={2} maxLength={2000} className="sm:col-span-2" />
+              <Textarea label="Prerequisites and skills" value={form.prerequisites} onChange={set('prerequisites')} rows={3} hint="One per line" />
+              <Textarea label="Hardware and software" value={form.hardware_software} onChange={set('hardware_software')} rows={3} hint="One per line" />
+              <Textarea label="Testing procedure" value={form.testing_steps} onChange={set('testing_steps')} rows={3} hint="One step per line" />
+              <Textarea label="Safety notes" value={form.safety_notes} onChange={set('safety_notes')} rows={3} hint="One per line" />
+              <Textarea label="Extensions for advanced students" value={form.extensions} onChange={set('extensions')} rows={2} hint="One per line" />
+              <Textarea label="Learning outcomes (legacy)" value={form.learning_outcomes} onChange={set('learning_outcomes')} rows={2} hint="Shown only when Objectives is empty" />
+              <Textarea label="Not stocked by the lab" value={form.external_requirements} onChange={set('external_requirements')} rows={2}
+                hint="One per line. Listing anything here makes the status “Requires external components”." />
+              <Textarea label="Compatibility check needed" value={form.verification_note} onChange={set('verification_note')} rows={2} maxLength={1000}
+                hint="Leave empty once confirmed. While filled, the status is “Requires compatibility verification”." />
               <Input label="Documentation link" value={form.documentation_url} onChange={set('documentation_url')} error={errors.documentation_url} placeholder="https://" />
               <Input label="GitHub link" value={form.github_url} onChange={set('github_url')} error={errors.github_url} placeholder="https://" />
               <Input label="Video link" value={form.video_url} onChange={set('video_url')} error={errors.video_url} placeholder="https://" />
               <Input label="URL slug" value={form.slug} onChange={set('slug')} placeholder={slugify(form.name) || 'auto'} hint="Leave blank to generate" />
-              <div className="sm:col-span-2 flex items-center gap-4">
-                <Thumb path={form.image_path} name={form.name || 'project'} kind="project" className="h-20 w-28" />
+              <Input label="Image path or link" value={form.image_path || ''} onChange={set('image_path')} error={errors.image_path} placeholder="/projects/my-project.svg" hint="Filled automatically when you upload" />
+              <Input label="Image description (alt text)" value={form.image_alt} onChange={set('image_alt')} maxLength={300} hint="What the picture shows, for screen readers" />
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-4">
+                <Thumb path={form.image_path} name={form.name || 'project'} alt={form.image_alt} kind="project" className="aspect-[16/10] w-40" />
                 <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-[10px] border border-[#CBD5E1] bg-white px-3.5 text-[13px] font-semibold hover:bg-slate-50">
                   <ImagePlus className="h-4 w-4" /> {form.image_path ? 'Replace image' : 'Upload image'}
                   <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={onFile} />

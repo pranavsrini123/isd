@@ -37,14 +37,14 @@
   --color-line-strong: #CBD5E1;
   --color-ink: #0B1324;
   --color-muted: #526079;
-  --color-subtle: #8591A6;
+  --color-subtle: #606C82;
   --color-side-text: #A9B7D0;
 
   /* Status: green good, amber warning, red problem. Text colours pass AA on their tints. */
   --color-ok: #047857;
   --color-ok-bg: #DCF7EA;
   --color-ok-solid: #10B981;
-  --color-warn: #B45309;
+  --color-warn: #A44A06;
   --color-warn-bg: #FEF0D3;
   --color-warn-solid: #F59E0B;
   --color-bad: #B91C1C;

@@ -69,9 +69,9 @@ function Frame({ panelRef, titleId, onClose, title, description, footer, size, s
       onMouseDown={(e) => { if (e.target === e.currentTarget || e.target.dataset.overlay) onClose?.() }}>
       <Overlay data-overlay="1" className={cx('absolute inset-0', admin ? 'bg-night/50' : 'bg-night/55 backdrop-blur-[3px]')} {...overlayMotion} />
       <Panel ref={panelRef} role={present ? 'dialog' : undefined} aria-modal={present ? 'true' : undefined} aria-labelledby={titleId} tabIndex={-1}
-        className={cx('relative flex max-h-[100dvh] w-full flex-col bg-white focus:outline-none',
+        className={cx('relative flex w-full flex-col bg-white focus:outline-none',
           admin ? 'shadow-2xl' : 'shadow-pop',
-          side ? cx('h-full max-w-xl', !admin && 'sm:rounded-l-[24px]')
+          side ? cx('h-full max-h-[100dvh] max-w-xl', !admin && 'sm:rounded-l-[24px]')
             : cx(width, 'max-h-[92dvh]', admin ? 'rounded-t-2xl sm:rounded-xl' : 'rounded-t-[26px] sm:rounded-[24px]'))}
         {...panelMotion}>
         {sheet && !admin && <span className="mx-auto mt-2.5 h-1.5 w-10 flex-none rounded-full bg-slate-200" aria-hidden />}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderKanban, Plus, ShoppingBasket, Trash2, X } from 'lucide-react'
+import { AlertTriangle, CalendarDays, FolderKanban, Info, Plus, ShoppingBasket, Trash2, X } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { useToast } from '../../context/ToastContext'
 import { useAuth } from '../../context/AuthContext'
@@ -11,11 +11,27 @@ import { useInfiniteList } from '../../hooks/useInfiniteList'
 import { createRequest, getItemsByIds, getPublicSettings, listCategories, listInventory } from '../../lib/api'
 import { addDays, toISODate } from '../../lib/format'
 import { hasErrors, validateRequest } from '../../lib/validation'
-import { Badge, Button, Card, EmptyState, ErrorState, InlineError, PageHeader, Spinner } from '../../components/ui/primitives'
+import { Button, Card, EmptyState, ErrorState, InlineError, NightPanel, PageHeader, Spinner, cx } from '../../components/ui/primitives'
 import { Input, SearchInput, Select, Stepper, Textarea, Toggle } from '../../components/ui/forms'
 import { Modal } from '../../components/ui/Modal'
+import { Reveal, Stagger, StaggerItem } from '../../components/ui/motion'
+import { Orbit } from '../../components/ui/decor'
 import { StockBadge } from '../../components/domain/badges'
 import { Thumb } from '../../components/domain/Thumb'
+
+/** Numbered step heading: a glowing night chip with the step number, then the title (reads "1 · Components"). */
+function StepTitle({ n, children, className }) {
+  return (
+    <h2 className={cx('flex min-w-0 items-center gap-3 text-lg font-semibold leading-snug', className)}>
+      <span className="num flex h-8 w-8 flex-none items-center justify-center rounded-[10px] bg-night-2 text-[13px] font-semibold text-cyan-light shadow-[0_0_0_1px_rgb(34_211_238/0.28),0_8px_16px_-8px_rgb(34_211_238/0.7)]">{n}</span>
+      <span className="sr-only"> · </span>
+      <span className="min-w-0">{children}</span>
+    </h2>
+  )
+}
+
+const DT = 'text-[11px] font-semibold uppercase tracking-[.09em] text-side-text'
+const TILE = 'glass-dark flex min-w-0 flex-col justify-between gap-2 rounded-2xl px-4 py-3.5'
 
 export default function NewRequest() {
   const cart = useCart()
@@ -77,10 +93,21 @@ export default function NewRequest() {
       <>
       <div key="empty">
         <PageHeader title="Request components" />
-        <Card><EmptyState icon={ShoppingBasket} title="Your request list is empty"
-          action={<div className="flex flex-wrap justify-center gap-2"><Button to="/student/projects" icon={FolderKanban}>Start from a project</Button><Button variant="outline" onClick={() => setPicker(true)} icon={Plus}>Add components</Button></div>}>
-          Pick a project to pre-fill its parts, or add individual components from the inventory.
-        </EmptyState></Card>
+        <Card className="relative isolate overflow-hidden">
+          <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+            <div className="tex-dots absolute inset-0 [mask-image:radial-gradient(ellipse_60%_70%_at_50%_40%,#000_10%,transparent_75%)]" />
+            <div className="absolute left-1/2 top-10 h-48 w-48 -translate-x-1/2 rounded-full bg-cyan/20 blur-3xl" />
+          </div>
+          <EmptyState icon={ShoppingBasket} title="Your request list is empty" className="sm:py-20"
+            action={(
+              <div className="flex w-full flex-col items-stretch gap-2.5 sm:flex-row sm:justify-center">
+                <Button to="/student/projects" icon={FolderKanban}>Start from a project</Button>
+                <Button variant="outline" onClick={() => setPicker(true)} icon={Plus}>Add components</Button>
+              </div>
+            )}>
+            Pick a project to pre-fill its parts, or add individual components from the inventory.
+          </EmptyState>
+        </Card>
       </div>
       {pickerEl}
       </>
@@ -94,82 +121,131 @@ export default function NewRequest() {
         subtitle={cart.projectName ? `Pre-filled from ${cart.projectName}. Adjust quantities, dates or add more parts.` : 'Choose quantities and dates, then submit for approval.'} />
       {profile.status !== 'active' && <div className="mb-5"><InlineError>Your account is restricted, so new requests cannot be submitted.</InlineError></div>}
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-6">
+      <div className="grid gap-5 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-5 sm:space-y-6">
           <Card padded={false}>
-            <div className="flex items-center justify-between border-b border-line px-6 py-4">
-              <h2 className="text-lg font-semibold">1 · Components</h2>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line/80 px-5 py-4 sm:px-6">
+              <StepTitle n={1}>Components</StepTitle>
               {cart.projectName && (
-                <Badge tone="info" className="!py-1">{cart.projectName}
-                  <button type="button" onClick={cart.clearProject} aria-label="Unlink project" className="ml-1"><X className="h-3 w-3" /></button>
-                </Badge>
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full bg-cyan-soft py-1 pl-2.5 pr-1 text-xs font-semibold text-brand ring-1 ring-inset ring-brand/15">
+                  <FolderKanban className="h-3.5 w-3.5 flex-none" aria-hidden />
+                  <span className="truncate">{cart.projectName}</span>
+                  <button type="button" onClick={cart.clearProject} aria-label="Unlink project"
+                    className="flex h-6 w-6 flex-none items-center justify-center rounded-full transition-colors hover:bg-brand/10">
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </span>
               )}
             </div>
-            <ul className="divide-y divide-line">
+            <Stagger as="ul" className="space-y-2.5 p-3 sm:p-4">
               {lines.map((l) => {
                 const err = errors.lineErrors?.[l.item_id]
                 const out = live.data && l.available_qty === 0
+                const problem = err || out
                 return (
-                  <li key={l.item_id} className="flex flex-wrap items-center gap-4 px-6 py-4">
-                    <Thumb path={l.item?.image_path} name={l.name} category={l.item?.category_name} className="h-12 w-12" />
+                  <StaggerItem as="li" key={l.item_id}
+                    className={cx('flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border p-3 shadow-[0_1px_2px_rgb(11_19_36/0.04)] transition-colors sm:p-3.5',
+                      problem ? 'border-bad/25 bg-bad-bg/45' : 'border-white bg-white/70 hover:bg-white/95')}>
+                    <Thumb path={l.item?.image_path} name={l.name} category={l.item?.category_name} className="h-14 w-14 flex-none sm:h-16 sm:w-16" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold">{l.name}</p>
-                      <p className="flex items-center gap-2 text-sm text-muted">
-                        {live.data ? `${l.available_qty} available` : 'Checking stock…'} {l.item && <StockBadge status={l.item.stock_status} />}
+                      <p className="break-words font-semibold leading-snug">{l.name}</p>
+                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
+                        {live.data
+                          ? <span><span className="num font-semibold text-ink">{l.available_qty}</span> available</span>
+                          : <span>Checking stock…</span>}
+                        {l.item && <StockBadge status={l.item.stock_status} />}
                       </p>
-                      {(err || out) && <p className="text-[13px] font-medium text-bad">{l.item?.is_requestable === false ? 'Lab use only — this item can no longer be requested. Remove it.' : out ? 'Out of stock — remove it or wait for returns' : err}</p>}
+                      {problem && (
+                        <p className="mt-1.5 flex items-start gap-1.5 text-[13px] font-medium text-bad">
+                          <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden />
+                          <span>{l.item?.is_requestable === false ? 'Lab use only — this item can no longer be requested. Remove it.' : out ? 'Out of stock — remove it or wait for returns' : err}</span>
+                        </p>
+                      )}
                     </div>
-                    <Stepper value={l.qty} onChange={(v) => cart.setQty(l.item_id, v)} min={1} max={Math.max(1, l.available_qty)} label={`${l.name} quantity`} />
-                    <Button variant="ghost" size="icon" onClick={() => cart.removeItem(l.item_id)} aria-label={`Remove ${l.name}`}><Trash2 className="h-4 w-4 text-bad" /></Button>
-                  </li>
+                    <div className="flex w-full items-center justify-between gap-2 border-t border-line/70 pt-3 sm:w-auto sm:border-0 sm:pt-0">
+                      <Stepper value={l.qty} onChange={(v) => cart.setQty(l.item_id, v)} min={1} max={Math.max(1, l.available_qty)} label={`${l.name} quantity`} />
+                      <Button variant="ghost" size="icon" className="!h-11 !w-11 hover:bg-bad-bg!" onClick={() => cart.removeItem(l.item_id)} aria-label={`Remove ${l.name}`}>
+                        <Trash2 className="h-4 w-4 text-bad" />
+                      </Button>
+                    </div>
+                  </StaggerItem>
                 )
               })}
-            </ul>
-            <div className="border-t border-line px-6 py-3">
-              <Button variant="ghost" size="sm" icon={Plus} onClick={() => setPicker(true)}>Add another component</Button>
-              {errors.lines && <p className="mt-1 text-[13px] font-medium text-bad">{errors.lines}</p>}
+            </Stagger>
+            <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+              <button type="button" onClick={() => setPicker(true)}
+                className="group flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl border border-dashed border-line-strong bg-white/40 px-4 text-sm font-semibold text-brand transition-colors hover:border-cyan hover:bg-cyan/[.06]">
+                <span className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-cyan-soft ring-1 ring-inset ring-cyan/35 transition-shadow group-hover:shadow-[0_0_12px_rgb(34_211_238/0.6)]" aria-hidden>
+                  <Plus className="h-4 w-4" />
+                </span>
+                Add another component
+              </button>
+              {errors.lines && <p className="mt-2 px-1 text-[13px] font-medium text-bad">{errors.lines}</p>}
             </div>
           </Card>
 
-          <Card>
-            <h2 className="mb-4 text-lg font-semibold">2 · Dates</h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Input type="date" label="Required from" min={today} value={form.neededFrom} error={errors.neededFrom}
-                onChange={(e) => setForm((f) => ({ ...f, neededFrom: e.target.value }))} required />
-              <Input type="date" label="Required till" min={form.neededFrom || today} max={form.neededFrom ? addDays(form.neededFrom, maxDays) : undefined}
-                value={form.neededUntil} error={errors.neededUntil} onChange={(e) => setForm((f) => ({ ...f, neededUntil: e.target.value }))} required />
-            </div>
-            <p className="mt-2 text-[13px] text-muted">Loans can last up to {maxDays} days. Extensions need the lab manager's approval.</p>
-          </Card>
+          <Reveal>
+            <Card>
+              <StepTitle n={2} className="mb-5">Dates</StepTitle>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input type="date" label="Required from" min={today} value={form.neededFrom} error={errors.neededFrom} className="min-w-0"
+                  onChange={(e) => setForm((f) => ({ ...f, neededFrom: e.target.value }))} required />
+                <Input type="date" label="Required till" min={form.neededFrom || today} max={form.neededFrom ? addDays(form.neededFrom, maxDays) : undefined} className="min-w-0"
+                  value={form.neededUntil} error={errors.neededUntil} onChange={(e) => setForm((f) => ({ ...f, neededUntil: e.target.value }))} required />
+              </div>
+              <p className="mt-4 flex items-start gap-2.5 rounded-xl bg-slate-500/[.06] px-3.5 py-2.5 text-[13px] leading-relaxed text-muted">
+                <CalendarDays className="mt-0.5 h-4 w-4 flex-none text-brand" aria-hidden />
+                <span>Loans can last up to <span className="num font-semibold text-ink">{maxDays}</span> days. Extensions need the lab manager's approval.</span>
+              </p>
+            </Card>
+          </Reveal>
 
-          <Card>
-            <h2 className="mb-4 text-lg font-semibold">3 · Purpose</h2>
-            <div className="space-y-4">
-              <Input label="Project or purpose" value={form.purpose} maxLength={300} error={errors.purpose}
-                onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))} required />
-              <Textarea label="Note for the lab manager" hint="Optional" value={form.note} maxLength={1000} rows={3}
-                onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} placeholder="e.g. Building this for the Embedded Systems mini-project. Will collect after 2 pm." />
-            </div>
-          </Card>
+          <Reveal>
+            <Card>
+              <StepTitle n={3} className="mb-5">Purpose</StepTitle>
+              <div className="space-y-4">
+                <Input label="Project or purpose" value={form.purpose} maxLength={300} error={errors.purpose}
+                  onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))} required />
+                <Textarea label="Note for the lab manager" hint="Optional" value={form.note} maxLength={1000} rows={3}
+                  onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} placeholder="e.g. Building this for the Embedded Systems mini-project. Will collect after 2 pm." />
+              </div>
+            </Card>
+          </Reveal>
         </div>
 
-        <aside>
-          <Card className="xl:sticky xl:top-24">
-            <h2 className="text-lg font-semibold">Summary</h2>
-            <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><dt className="text-muted">Component types</dt><dd className="font-semibold">{lines.length}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted">Total units</dt><dd className="font-semibold">{lines.reduce((s, l) => s + l.qty, 0)}</dd></div>
-              <div className="flex justify-between"><dt className="text-muted">Dates</dt><dd className="font-semibold">{form.neededFrom || '—'} → {form.neededUntil || '—'}</dd></div>
-            </dl>
-            <p className="mt-4 rounded-xl bg-info-bg px-3 py-2.5 text-[13px] text-info">
-              Submitting does not reserve stock. Parts are held for you once an administrator approves the request.
-            </p>
-            {serverError && <div className="mt-4"><InlineError>{serverError}</InlineError></div>}
-            <div className="mt-5 flex flex-col gap-2">
-              <Button type="submit" size="lg" loading={pending} disabled={profile.status !== 'active'}>Submit request</Button>
-              <Button variant="outline" onClick={() => { cart.clear(); nav('/student/projects') }}>Cancel and clear</Button>
-            </div>
-          </Card>
+        <aside className="min-w-0">
+          <Reveal className="xl:sticky xl:top-24" delay={0.08}>
+            <NightPanel as="div" className="rounded-[22px] p-5 shadow-[0_28px_60px_-30px_rgb(7_13_31/0.75)] sm:p-6">
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10"><Orbit className="-right-24 -top-24 h-64 w-64 opacity-40" /></div>
+              <h2 className="flex items-center gap-2.5 text-lg font-semibold text-white">
+                <span className="h-2 w-2 flex-none rounded-full bg-cyan shadow-[0_0_10px_rgb(34_211_238/0.9)]" aria-hidden />
+                Summary
+              </h2>
+              <dl className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3 xl:grid-cols-2">
+                <div className={TILE}>
+                  <dt className={DT}>Component types</dt>
+                  <dd className="num text-[30px] font-semibold leading-none text-white">{lines.length}</dd>
+                </div>
+                <div className={TILE}>
+                  <dt className={DT}>Total units</dt>
+                  <dd className="num text-[30px] font-semibold leading-none text-cyan-light">{lines.reduce((s, l) => s + l.qty, 0)}</dd>
+                </div>
+                <div className={cx(TILE, 'col-span-2 sm:col-span-1 xl:col-span-2')}>
+                  <dt className={DT}>Dates</dt>
+                  <dd className="text-[15px] font-semibold text-white">{form.neededFrom || '—'} <span className="text-cyan-light">→</span> {form.neededUntil || '—'}</dd>
+                </div>
+              </dl>
+              <p className="mt-4 flex items-start gap-2.5 rounded-xl border border-cyan/20 bg-cyan/[.07] px-3.5 py-3 text-[13px] leading-relaxed text-[#B9C6DE]">
+                <Info className="mt-0.5 h-4 w-4 flex-none text-cyan-light" aria-hidden />
+                <span>Submitting does not reserve stock. Parts are held for you once an administrator approves the request.</span>
+              </p>
+              {serverError && <div className="mt-4"><InlineError>{serverError}</InlineError></div>}
+              <div className="mt-5 flex flex-col gap-2.5 sm:flex-row-reverse sm:justify-start xl:flex-col">
+                <Button type="submit" size="lg" loading={pending} disabled={profile.status !== 'active'}>Submit request</Button>
+                <Button variant="outline" onClick={() => { cart.clear(); nav('/student/projects') }}>Cancel and clear</Button>
+              </div>
+            </NightPanel>
+          </Reveal>
         </aside>
       </div>
     </form>
@@ -204,40 +280,44 @@ function ComponentPicker({ open, onClose }) {
   return (
     <Modal open={open} onClose={onClose} title="Add components" size="lg"
       description="Search the inventory and set how many of each you need."
-      footer={<Button onClick={onClose}>Done · {selectedCount} component type{selectedCount === 1 ? '' : 's'} selected</Button>}>
-      <div className="grid gap-3 sm:grid-cols-[1fr_190px]">
+      footer={<Button onClick={onClose} className="w-full sm:w-auto"><span>Done · <span className="num">{selectedCount}</span> component type{selectedCount === 1 ? '' : 's'} selected</span></Button>}>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_190px]">
         <SearchInput value={q} onChange={setQ} placeholder="Search by name, brand or model" />
         <Select aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="All categories"
           options={(cats.data || []).map((c) => ({ value: c.id, label: c.name }))} />
       </div>
-      <div className="mt-3 flex items-center justify-between gap-3">
+      <div className="mt-3.5 flex items-center justify-between gap-3">
         <Toggle checked={availableOnly} onChange={setAvailableOnly} label="Only show components I can borrow now" />
-        {list.count !== null && <span className="text-xs text-muted">{list.count} found</span>}
+        {list.count !== null && (
+          <span className="flex-none rounded-full bg-neutral-pill px-2.5 py-1 text-xs font-medium text-neutral-pill-text"><span className="num font-semibold">{list.count}</span> found</span>
+        )}
       </div>
 
       {list.error && list.items.length === 0 ? <ErrorState error={list.error} onRetry={list.retry} className="!py-8" /> : (
-        <ul className="mt-3 divide-y divide-line">
+        <ul className="-mx-2 mt-3 space-y-1">
           {list.items.map((i) => {
             const line = inCart[i.id]
             const labOnly = i.is_requestable === false
             const out = labOnly || i.requestable_qty === 0
             return (
-              <li key={i.id} className="flex flex-wrap items-center gap-3 py-2.5">
-                <Thumb path={i.image_path} name={i.name} category={i.category_name} className="h-10 w-10" />
+              <li key={i.id} className={cx('flex items-center gap-3 rounded-2xl px-2 py-2 transition-colors',
+                line ? 'bg-cyan/[.07] ring-1 ring-inset ring-cyan/30' : 'hover:bg-slate-50')}>
+                <Thumb path={i.image_path} name={i.name} category={i.category_name} className={cx('h-11 w-11 flex-none !rounded-xl', out && 'opacity-60')} />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">{i.name}</p>
-                  <p className={out ? 'text-xs font-medium text-bad' : 'text-xs text-muted'}>
-                    {labOnly ? 'Lab use only — cannot be requested' : out ? 'Out of stock — cannot be requested right now' : `${i.requestable_qty} available · ${i.category_name}`}
+                  <p className="line-clamp-2 break-words text-sm font-semibold leading-snug">{i.name}</p>
+                  <p className={out ? 'mt-0.5 text-xs font-medium text-bad' : 'mt-0.5 truncate text-xs text-muted'}>
+                    {labOnly ? 'Lab use only — cannot be requested' : out ? 'Out of stock — cannot be requested right now'
+                      : <><span className="num font-semibold text-ink">{i.requestable_qty}</span> available · {i.category_name}</>}
                   </p>
                 </div>
                 {line ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex flex-none items-center gap-0.5">
                     <Stepper size="sm" value={line.qty} min={1} max={Math.max(1, i.requestable_qty)} label={`${i.name} quantity`}
                       onChange={(v) => cart.setQty(i.id, v)} />
-                    <Button size="icon" variant="ghost" aria-label={`Remove ${i.name}`} onClick={() => cart.removeItem(i.id)}><Trash2 className="h-4 w-4 text-bad" /></Button>
+                    <Button size="icon" variant="ghost" className="hover:bg-bad-bg!" aria-label={`Remove ${i.name}`} onClick={() => cart.removeItem(i.id)}><Trash2 className="h-4 w-4 text-bad" /></Button>
                   </div>
                 ) : (
-                  <Button size="sm" variant="outline" icon={Plus} disabled={out} onClick={() => cart.addItem(i, 1)}
+                  <Button size="sm" variant="outline" icon={Plus} disabled={out} onClick={() => cart.addItem(i, 1)} className="flex-none"
                     aria-label={labOnly ? `${i.name} is for lab use only` : out ? `${i.name} is out of stock` : `Add ${i.name}`}>
                     {labOnly ? 'Lab only' : out ? 'Unavailable' : 'Add'}
                   </Button>

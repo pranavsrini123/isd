@@ -30,9 +30,12 @@ export function StudentLayout() {
       )}
       switchLink={isAdmin ? { to: '/admin', label: 'Admin console', icon: ShieldCheck } : null}
       topRight={{ right: cart.count > 0 && (
-        <Button to="/student/request" size="sm" variant="cyan" icon={ShoppingBasket} className="hidden sm:inline-flex">
-          Request list · <span className="num">{cart.count}</span>
-        </Button>
+        // The wrapper hides it on phones (the sidebar badge shows the count there).
+        <span className="hidden sm:block">
+          <Button to="/student/request" size="sm" variant="cyan" icon={ShoppingBasket}>
+            Request list · <span className="num">{cart.count}</span>
+          </Button>
+        </span>
       ) }} />
   )
 }

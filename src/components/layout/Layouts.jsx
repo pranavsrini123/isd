@@ -1,5 +1,5 @@
 import {
-  Activity, BarChart3, Boxes, ClipboardCheck, FileSpreadsheet, ClipboardList, Cpu, FolderKanban, LayoutDashboard,
+  Activity, AlertTriangle, BarChart3, Boxes, ClipboardCheck, FileSpreadsheet, ClipboardList, Cpu, FolderKanban, LayoutDashboard,
   PackageCheck, Settings, ShieldCheck, ShoppingBasket, User, Users, GraduationCap,
 } from 'lucide-react'
 import { AppShell } from './AppShell'
@@ -21,20 +21,22 @@ export function StudentLayout() {
     ] },
   ]
   return (
-    <>
-      {profile?.status === 'restricted' && (
-        <div className="bg-warn-bg px-4 py-2 text-center text-sm font-medium text-warn lg:pl-[252px]">
+    <AppShell portal="student" nav={nav}
+      banner={profile?.status === 'restricted' && (
+        <div className="flex items-center justify-center gap-2 border-b border-warn-solid/30 bg-warn-bg/90 px-4 py-2.5 text-center text-sm font-medium text-warn backdrop-blur">
+          <AlertTriangle className="h-4 w-4 flex-none" aria-hidden />
           Your account is restricted: you can browse, but new requests are paused. Contact the lab administrator.
         </div>
       )}
-      <AppShell portal="student" nav={nav}
-        switchLink={isAdmin ? { to: '/admin', label: 'Admin console', icon: ShieldCheck } : null}
-        topRight={{ right: cart.count > 0 && (
-          <Button to="/student/request" size="sm" variant="cyan" icon={ShoppingBasket} className="hidden sm:inline-flex">
-            Request list · {cart.count}
+      switchLink={isAdmin ? { to: '/admin', label: 'Admin console', icon: ShieldCheck } : null}
+      topRight={{ right: cart.count > 0 && (
+        // The wrapper hides it on phones (the sidebar badge shows the count there).
+        <span className="hidden sm:block">
+          <Button to="/student/request" size="sm" variant="cyan" icon={ShoppingBasket}>
+            Request list · <span className="num">{cart.count}</span>
           </Button>
-        ) }} />
-    </>
+        </span>
+      ) }} />
   )
 }
 

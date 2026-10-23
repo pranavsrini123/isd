@@ -6,7 +6,7 @@ newer.
 ## 1. Create the Supabase project
 
 1. Create a project at <https://supabase.com/dashboard>. Choose the Mumbai (ap-south-1) region if it is available.
-2. Open **SQL Editor** and run each file in `supabase/migrations/` **in order** (0001 → 0009).
+2. Open **SQL Editor** and run each file in `supabase/migrations/` **in order** (0001 → 0010).
    Paste each file's contents and click Run. Every file must finish without errors before you run the next.
    - With the Supabase CLI instead: `supabase link --project-ref <ref>` then `supabase db push`.
 3. Optional: run `supabase/seed.sql` to load the demonstration inventory and projects. Every row is

@@ -1,17 +1,23 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { ShieldAlert, UserX } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
-import { Button, PageLoader } from '../ui/primitives'
+import { Button, IconTile, PageLoader } from '../ui/primitives'
 import { Logo } from './Logo'
 
 function Centered({ icon: Icon, title, children, action }) {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-page px-6 text-center">
+    <div className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-page px-6 text-center">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute left-1/2 top-1/3 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(34_211_238/0.18),transparent)]" />
+        <div className="tex-dots absolute inset-0 [mask-image:radial-gradient(closest-side,#000,transparent)]" />
+      </div>
       <Logo />
-      <span className="mb-4 mt-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-bad-bg text-bad"><Icon className="h-7 w-7" aria-hidden /></span>
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="mt-2 max-w-md text-muted">{children}</p>
-      {action && <div className="mt-6">{action}</div>}
+      <div className="glass mt-10 flex max-w-md flex-col items-center rounded-[24px] px-8 py-9">
+        <IconTile icon={Icon} tone="bad" size="lg" className="mb-4" />
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="mt-2 text-muted">{children}</p>
+        {action && <div className="mt-6">{action}</div>}
+      </div>
     </div>
   )
 }

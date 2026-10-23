@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { availabilityOf, parseSteps } from './student/ProjectDetails'
-import { toCsv } from './admin/Reports'
+import { discrepancyCsv } from './admin/Import'
 
 describe('build instructions parser', () => {
   it('splits paragraphs and numbered steps, with optional titles', () => {
@@ -14,12 +14,21 @@ describe('build instructions parser', () => {
   })
 })
 
-describe('CSV export', () => {
-  it('quotes values and neutralises formula injection', () => {
-    const csv = toCsv([{ name: 'Arduino, Uno', note: '=HYPERLINK("x")', n: 3 }])
-    expect(csv.split('\n')[0]).toBe('name,note,n')
-    expect(csv).toContain('"Arduino, Uno"')
-    expect(csv).toContain(`"'=HYPERLINK(""x"")"`)
+describe('audit discrepancy CSV', () => {
+  const rec = (o) => ({ source_section: 'small_components', source_page: 2, source_row: 3, source_serial: '3', original_name: '9V1A Adapter',
+    qty_reported: null, qty_isd_lab: 2, qty_old_project: 0, qty_available_reported: 1, remarks: null, flags: ['quantity_mismatch'],
+    review_notes: null, status: 'needs_review', item_name: null, ...o })
+  it('lists only flagged rows, under a fixed header', () => {
+    const lines = discrepancyCsv([rec(), rec({ source_row: 4, flags: [] })]).split('\n')
+    expect(lines[0]).toBe('section,page,row,serial,original_name,qty_reported,qty_isd_lab,qty_old_project,qty_available_reported,remarks,flags,review_notes,status,linked_item')
+    expect(lines).toHaveLength(2)
+    expect(lines[1]).toBe('"small_components","2","3","3","9V1A Adapter","","2","0","1","","quantity_mismatch","","needs_review",""')
+  })
+  it('neutralises formulas in text taken from the audit document', () => {
+    const csv = discrepancyCsv([rec({ original_name: '=HYPERLINK("http://x")', remarks: '@SUM(A1)', flags: ['unclear_name', 'damaged'] })])
+    expect(csv).toContain(`"'=HYPERLINK(""http://x"")"`)
+    expect(csv).toContain(`"'@SUM(A1)"`)
+    expect(csv).toContain('"unclear_name; damaged"')
   })
 })
 

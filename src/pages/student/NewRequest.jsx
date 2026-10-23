@@ -25,6 +25,7 @@ export default function NewRequest() {
   const today = toISODate(new Date())
   const settings = useQuery(() => getPublicSettings(), [])
   const maxDays = settings.data?.max_loan_days ?? 14
+  const maxItems = settings.data?.max_items_per_request ?? 20
   const ids = cart.lines.map((l) => l.item_id)
   const live = useQuery(() => getItemsByIds(ids), [ids.join(',')])
   useRealtime(['inventory_items'], live.refetch)
@@ -50,7 +51,7 @@ export default function NewRequest() {
   async function submit(e) {
     e.preventDefault()
     setServerError('')
-    const v = validateRequest({ ...form, lines }, { today, maxLoanDays: maxDays, maxItems: 20 })
+    const v = validateRequest({ ...form, lines }, { today, maxLoanDays: maxDays, maxItems })
     setErrors(v)
     if (hasErrors(v)) return
     setPending(true)

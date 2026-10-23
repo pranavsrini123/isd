@@ -9,7 +9,15 @@ so RLS, grants and guards are exercised for real.
 
 ```bash
 npm run test:db       # or: bash supabase/tests/run_tests.sh && bash supabase/tests/concurrency.sh
+npm run test:db:docker   # same suite in the postgres:16 image: any OS with Docker, no local Postgres needed
 ```
+
+`test:db` needs bash and the PostgreSQL 16 binaries (`PG_BIN` overrides `/usr/lib/postgresql/16/bin`).
+`test:db:docker` mounts the repository read-only into the container and runs the same scripts there.
+
+`run_catalogue_tests.sh` replaces the inventory with the audit, loads the project catalogue and runs
+`50_catalogue.sql` (content, inventory links, live availability, permissions) and `55_catalogue_rerun.sql`:
+re-running the load leaves admin edits alone, and rollback followed by a re-load restores every status.
 
 `20_tests.sql` + `30_extensions.sql`: **222 assertions** covering:
 - **Sign-up**: domain restriction, empty allow-list, profile creation, metadata cannot grant admin

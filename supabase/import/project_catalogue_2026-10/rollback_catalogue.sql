@@ -6,6 +6,12 @@ select set_config('request.jwt.claim.sub',
 select set_config('request.jwt.claims',
   json_build_object('sub', current_setting('request.jwt.claim.sub', true), 'role', 'authenticated')::text, true);
 
+-- Remember each catalogue project's status, so re-running load_catalogue.sql puts back exactly that
+-- (a project an admin had unpublished or archived stays so). A second rollback keeps the first record.
+insert into public.project_status_backup (batch_key, project_id, previous_status)
+select 'project-catalogue-2026-10:rolled-back', p.id, p.status from public.projects p where p.catalogue_key like 'project-catalogue-2026-10:%'
+on conflict do nothing;
+
 -- Catalogue projects become drafts (hidden from students); re-running load_catalogue.sql publishes them again.
 update public.projects set status = 'draft' where catalogue_key like 'project-catalogue-2026-10:%' and status <> 'draft';
 update public.projects p set status = b.previous_status

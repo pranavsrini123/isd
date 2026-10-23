@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Rebuild the DB with demo data, replace the inventory with the audit, load the project catalogue,
-# check stock was untouched by the catalogue load, then run 50_catalogue.sql. Exit 1 on any failure.
+# check stock was untouched by the catalogue load, then run 50_catalogue.sql and the re-run / rollback
+# cycle in 55_catalogue_rerun.sql. Exit 1 on any failure.
 set -euo pipefail
 cd "$(dirname "$0")"
 ./pg_up.sh >/dev/null
@@ -17,6 +18,6 @@ $P -f ../import/project_catalogue_2026-10/load_catalogue.sql >/dev/null 2>&1   #
 after=$(stock)
 $P -c "select t.ok('catalogue: loading created no inventory items and changed no stock', '$before' = '$after')"
 $P -c "select t.ok('catalogue: re-running the load adds no duplicates', (select count(*) from public.projects where catalogue_key is not null) = 40)"
-out=$($P -v verbose="${VERBOSE:-0}" -f 50_catalogue.sql -f 99_report.sql)
+out=$($P -v verbose="${VERBOSE:-0}" -f 50_catalogue.sql -f 55_catalogue_rerun.sql -f 99_report.sql)
 echo "$out"
 echo "$out" | grep -qE '^\s*[0-9]+ \|\s+0$' || exit 1

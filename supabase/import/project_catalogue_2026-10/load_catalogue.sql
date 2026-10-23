@@ -10,7 +10,10 @@
 --      its previous status is saved in project_status_backup for rollback_catalogue.sql.
 --      Requests and history that reference old projects are untouched.
 --   2. The 40 projects are inserted as drafts, their components linked, then published.
---   3. Re-running inserts nothing new and does not overwrite edits made in the app.
+--   3. Re-running while the catalogue is live only adds catalogue projects that are missing:
+--      it archives nothing and leaves projects and requirements edited in the app alone.
+--      After rollback_catalogue.sql it replaces the active catalogue again and gives every
+--      catalogue project back the status it had before the rollback.
 -- =============================================================================
 begin;
 
@@ -27,15 +30,24 @@ begin
   end if;
 end $$;
 
+-- Replace the active catalogue only on the first load, or after rollback_catalogue.sql (which leaves
+-- a 'project-catalogue-2026-10:rolled-back' row per catalogue project). Otherwise the catalogue is already live.
+create temp table _catalogue_run on commit drop as
+select not exists (select 1 from public.projects where catalogue_key like 'project-catalogue-2026-10:%')
+       or exists (select 1 from public.project_status_backup where batch_key = 'project-catalogue-2026-10:rolled-back') as replace_active;
+create temp table _catalogue_new (id uuid primary key) on commit drop;
+
 -- 1. Archive the old active catalogue (reversible).
 insert into public.project_status_backup (batch_key, project_id, previous_status)
 select 'project-catalogue-2026-10', p.id, p.status from public.projects p
- where p.status <> 'archived' and (p.catalogue_key is null or p.catalogue_key not like 'project-catalogue-2026-10:%')
+ where (select replace_active from _catalogue_run)
+   and p.status <> 'archived' and (p.catalogue_key is null or p.catalogue_key not like 'project-catalogue-2026-10:%')
 on conflict do nothing;
 update public.projects set status = 'archived'
- where status <> 'archived' and (catalogue_key is null or catalogue_key not like 'project-catalogue-2026-10:%');
+ where (select replace_active from _catalogue_run)
+   and status <> 'archived' and (catalogue_key is null or catalogue_key not like 'project-catalogue-2026-10:%');
 
--- 2. Projects.
+-- 2. Projects (remembering which ones this run inserted).
 with v (catalogue_key, name, slug, category, difficulty, est_hours_min, est_hours_max, description, instructions,
         learning_outcomes, objectives, prerequisites, hardware_software, expected_outcome, testing_steps,
         safety_notes, extensions, external_requirements, verification_note, image_path, image_alt) as (
@@ -462,7 +474,7 @@ Run AMCL and drive the robot; watch the particle cloud converge.
 
 4. Evaluate
 Compare estimated positions with marked floor positions.', array['Mount and calibrate a LiDAR on a robot', 'Run probabilistic localization', 'Evaluate pose accuracy']::text[], array['Mount and calibrate a LiDAR on a robot', 'Run probabilistic localization', 'Evaluate pose accuracy']::text[], array['Completion of LiDAR mapping (project 19) or ROS experience', 'Probability basics']::text[], array['Twin Bot, 2D LiDAR and mini PC (lab use)', 'ROS, LiDAR driver, map server, AMCL, RViz']::text[], 'The robot’s estimated position on the map stays within a few centimetres of its real position.', array['Drive to five marked points and record position error', 'Kidnap test: move the robot by hand and check recovery']::text[], array['Operate in a clear area at low speed.', 'Never look into the LiDAR emitter.', 'Lab use only.']::text[], array['Add autonomous navigation to goals', 'Fuse wheel odometry and an IMU']::text[], '{}'::text[], 'Confirm the LiDAR driver and a secure mounting on the Twin Bot before publishing as buildable.', '/projects/indoor-robot-localization.svg', 'Robot with a LiDAR on top locating itself on an indoor floor-plan map')
-)
+), inserted as (
 insert into public.projects (catalogue_key, name, slug, category, difficulty, est_hours_min, est_hours_max, description,
   instructions, learning_outcomes, objectives, prerequisites, hardware_software, expected_outcome, testing_steps,
   safety_notes, extensions, external_requirements, verification_note, image_path, image_alt, status, is_demo)
@@ -472,7 +484,10 @@ select v.catalogue_key, v.name,
        v.learning_outcomes, v.objectives, v.prerequisites, v.hardware_software, v.expected_outcome, v.testing_steps,
        v.safety_notes, v.extensions, v.external_requirements, v.verification_note, v.image_path, v.image_alt, 'draft', false
   from v
-on conflict (catalogue_key) do nothing;
+on conflict (catalogue_key) do nothing
+returning id
+)
+insert into _catalogue_new (id) select id from inserted;
 
 -- 3. Required components, linked to the audited inventory items.
 with c (catalogue_key, source_section, source_row, qty, notes) as (
@@ -668,13 +683,22 @@ select p.id, s.item_id, c.qty, c.notes
   join public.inventory_source_records s
     on s.batch_key = 'components-audit-2026-10-12' and s.source_section = c.source_section
    and s.source_row = c.source_row and s.status = 'applied' and s.item_id is not null
- where p.status = 'draft'   -- only freshly inserted projects; published ones keep any admin edits
+ where p.id in (select id from _catalogue_new)   -- only projects inserted by this run; existing ones keep any admin edits
 on conflict (project_id, item_id) do nothing;
 
--- 4. Publish the new drafts that have their components.
+-- 4. Publish the new projects that have their components.
 update public.projects p set status = 'published'
- where p.catalogue_key like 'project-catalogue-2026-10:%' and p.status = 'draft'
+ where p.id in (select id from _catalogue_new)
    and exists (select 1 from public.project_components pc where pc.project_id = p.id);
+
+-- 5. After a rollback: give each catalogue project the status it had before the rollback (so one an
+--    admin had unpublished or archived stays that way), unless it was changed since.
+update public.projects p set status = b.previous_status
+  from public.project_status_backup b
+ where b.batch_key = 'project-catalogue-2026-10:rolled-back' and b.project_id = p.id and p.status = 'draft'
+   and (b.previous_status <> 'published'
+        or exists (select 1 from public.project_components pc where pc.project_id = p.id));
+delete from public.project_status_backup where batch_key = 'project-catalogue-2026-10:rolled-back';
 
 commit;
 

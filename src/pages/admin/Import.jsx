@@ -9,6 +9,7 @@ import {
   projectLinksNeedingReview, retireDemoInventory, revertSourceRecord, skipSourceRecord,
 } from '../../lib/api'
 import { formatDateTime } from '../../lib/format'
+import { toCsv } from '../../lib/csv'
 import { useToast } from '../../context/ToastContext'
 import {
   Badge, Button, Card, EmptyState, ErrorState, InlineError, PageHeader, SkeletonRows, StatCard, Table, Tabs, Td, Th, cx,
@@ -43,15 +44,13 @@ export function sourceQty(r) {
 export function discrepancyCsv(records) {
   const cols = ['section', 'page', 'row', 'serial', 'original_name', 'qty_reported', 'qty_isd_lab', 'qty_old_project',
     'qty_available_reported', 'remarks', 'flags', 'review_notes', 'status', 'linked_item']
-  const esc = (v) => {
-    const s = v == null ? '' : String(v)
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
-  }
-  const rows = records.filter((r) => r.flags?.length).map((r) => [
-    r.source_section, r.source_page, r.source_row, r.source_serial, r.original_name, r.qty_reported, r.qty_isd_lab,
-    r.qty_old_project, r.qty_available_reported, r.remarks, (r.flags || []).join('; '), r.review_notes, r.status, r.item_name,
-  ].map(esc).join(','))
-  return [cols.join(','), ...rows].join('\n')
+  const rows = records.filter((r) => r.flags?.length).map((r) => ({
+    section: r.source_section, page: r.source_page, row: r.source_row, serial: r.source_serial, original_name: r.original_name,
+    qty_reported: r.qty_reported, qty_isd_lab: r.qty_isd_lab, qty_old_project: r.qty_old_project,
+    qty_available_reported: r.qty_available_reported, remarks: r.remarks, flags: (r.flags || []).join('; '),
+    review_notes: r.review_notes, status: r.status, linked_item: r.item_name,
+  }))
+  return toCsv(rows, cols)
 }
 
 export default function AdminImport() {

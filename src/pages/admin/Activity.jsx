@@ -13,7 +13,7 @@ const PAGE_SIZE = 30
 const ENTITY = [
   { value: 'borrow_request', label: 'Requests' }, { value: 'borrowing', label: 'Loans & returns' },
   { value: 'inventory_item', label: 'Inventory' }, { value: 'project', label: 'Projects' },
-  { value: 'profile', label: 'Users' }, { value: 'app_setting', label: 'Settings' }, { value: 'inventory_category', label: 'Categories' },
+  { value: 'profile', label: 'Users' }, { value: 'app_setting', label: 'Settings' }, { value: 'category', label: 'Categories' },
 ]
 const toneFor = (action) => /reject|lost|missing|delete|suspend/.test(action) ? 'bad' : /approve|verified|issued|created/.test(action) ? 'ok' : /adjust|update|change/.test(action) ? 'info' : 'neutral'
 

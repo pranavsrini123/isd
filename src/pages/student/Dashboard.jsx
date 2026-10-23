@@ -93,7 +93,8 @@ export default function StudentDashboard() {
         </StaggerItem>
       </Stagger>
 
-      <section className="mb-10">
+      {/* Hidden on phones to keep the dashboard short and easy to scan; the full library is one tap away. */}
+      <section className="mb-10 hidden sm:block">
         <SectionTitle className="mb-1" action={<Button to="/student/projects" variant="link" size="sm">View all projects <ArrowRight className="h-4 w-4" /></Button>}>
           Recommended projects for you
         </SectionTitle>

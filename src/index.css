@@ -1,83 +1,189 @@
 @import "tailwindcss";
 
-/* Design tokens taken from the approved mockup. */
+/*
+ * INVENTRA design tokens. Light mode only.
+ * Cyan #22D3EE is the accent; "night" blues carry the glowing hero areas and the sidebar.
+ */
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", "IBM Plex Sans", ui-sans-serif, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Instrument Sans", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --color-navy: #0B1B3A;
-  --color-navy-2: #13294F;
-  --color-navy-ink: #070F22;
-  --color-navy-hover: #16264A;
-  --color-brand: #2563EB;
-  --color-brand-dark: #1D4ED8;
+  /* Night: heroes, sidebar, welcome. */
+  --color-night: #070D1F;
+  --color-night-2: #0D1835;
+  --color-night-3: #16244A;
+  --color-night-line: rgb(148 178 255 / 0.14);
+  --color-navy: #0D1835;
+  --color-navy-2: #16244A;
+  --color-navy-ink: #050A18;
+  --color-navy-hover: #182850;
+
+  /* Accent family. brand = cyan dark enough for text and fills on white (5.4:1). */
   --color-cyan: #22D3EE;
   --color-cyan-light: #67E8F9;
+  --color-cyan-soft: #D3F6FB;
+  --color-brand: #0E7490;
+  --color-brand-dark: #155E75;
+  --color-focus: #0891B2;
   --color-teal: #0E7490;
-  --color-page: #F3F5FA;
-  --color-page-admin: #EEF1F6;
-  --color-line: #E2E8F0;
-  --color-ink: #0F172A;
-  --color-muted: #556377;
-  --color-side-text: #B9C6DD;
-  --color-ok: #15803D;
-  --color-ok-bg: #DCFCE7;
-  --color-warn: #B45309;
-  --color-warn-bg: #FEF3C7;
-  --color-bad: #B91C1C;
-  --color-bad-bg: #FEE2E2;
-  --color-info: #1D4ED8;
-  --color-info-bg: #E0ECFF;
-  --color-neutral-pill: #E8ECF3;
-  --color-neutral-pill-text: #3A475B;
+  --color-azure: #4F7BFF;
+  --color-iris: #8B7CFF;
 
-  --shadow-card: 0 1px 2px rgba(15, 23, 42, .04), 0 6px 20px rgba(15, 23, 42, .05);
-  --shadow-card-flat: 0 1px 2px rgba(15, 23, 42, .04);
+  /* Surfaces and text. */
+  --color-page: #F1F5FA;
+  --color-page-admin: #F1F4F8;
+  --color-line: #E1E7EF;
+  --color-line-strong: #CBD5E1;
+  --color-ink: #0B1324;
+  --color-muted: #526079;
+  --color-subtle: #8591A6;
+  --color-side-text: #A9B7D0;
+
+  /* Status: green good, amber warning, red problem. Text colours pass AA on their tints. */
+  --color-ok: #047857;
+  --color-ok-bg: #DCF7EA;
+  --color-ok-solid: #10B981;
+  --color-warn: #B45309;
+  --color-warn-bg: #FEF0D3;
+  --color-warn-solid: #F59E0B;
+  --color-bad: #B91C1C;
+  --color-bad-bg: #FDE3E3;
+  --color-bad-solid: #EF4444;
+  --color-info: #1D4ED8;
+  --color-info-bg: #E2EAFF;
+  --color-neutral-pill: #ECF0F5;
+  --color-neutral-pill-text: #3D4A5E;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.75) inset, 0 0 0 1px rgb(15 23 42 / 0.05), 0 1px 2px rgb(11 19 36 / 0.04), 0 14px 34px -16px rgb(11 19 36 / 0.16);
+  --shadow-card-flat: 0 1px 2px rgb(11 19 36 / 0.05);
+  --shadow-lift: 0 0 0 1px rgb(34 211 238 / 0.32), 0 22px 44px -18px rgb(11 19 36 / 0.28), 0 10px 32px -12px rgb(34 211 238 / 0.32);
+  --shadow-glow: 0 0 0 1px rgb(34 211 238 / 0.35), 0 10px 28px -8px rgb(34 211 238 / 0.55);
+  --shadow-pop: 0 24px 60px -20px rgb(7 13 31 / 0.45), 0 0 0 1px rgb(15 23 42 / 0.06);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
   html { -webkit-text-size-adjust: 100%; }
   body {
     @apply bg-page font-sans text-ink antialiased;
+    font-synthesis-style: none;
   }
+  /* No italics anywhere: the fonts ship upright styles only, and these elements stay upright too. */
+  em, i, cite, dfn, var, address { font-style: normal; }
   h1, h2, h3, h4 { @apply font-display tracking-tight; }
-  :focus-visible { outline: 2px solid var(--color-brand); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
   button { cursor: pointer; }
   button:disabled { cursor: not-allowed; }
+  ::selection { background: rgb(34 211 238 / 0.3); }
 }
 
 @utility label-caps {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: .08em;
+  letter-spacing: .09em;
   text-transform: uppercase;
   color: var(--color-muted);
 }
 
+/* Frosted glass on light surfaces (student portal). */
+@utility glass {
+  background-color: rgb(255 255 255 / 0.74);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.85);
+  box-shadow: var(--shadow-card);
+}
+/* Frosted glass on night surfaces. */
+@utility glass-dark {
+  background-color: rgb(255 255 255 / 0.06);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+/* Deep glowing night background: cyan, azure and iris light over the night blues. */
+@utility bg-hero {
+  background-color: var(--color-night);
+  background-image:
+    radial-gradient(55% 85% at 100% 0%, rgb(34 211 238 / 0.32), transparent 62%),
+    radial-gradient(50% 80% at 0% 100%, rgb(79 123 255 / 0.30), transparent 62%),
+    radial-gradient(40% 60% at 62% 118%, rgb(139 124 255 / 0.22), transparent 70%),
+    linear-gradient(160deg, #0F1D40 0%, #0A1330 45%, #070D1F 100%);
+}
+
+/* Fine lab grid, faded out with a radial mask. */
+@utility tex-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 90% at 75% 0%, #000 15%, transparent 72%);
+  mask-image: radial-gradient(ellipse 80% 90% at 75% 0%, #000 15%, transparent 72%);
+}
+/* Dot texture for light surfaces. */
+@utility tex-dots {
+  background-image: radial-gradient(rgb(15 23 42 / 0.075) 1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+/* Film grain. */
+@utility tex-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Hover lift and glow for clickable cards (only with a real pointer and motion allowed). */
+@utility lift {
+  transition: transform 260ms var(--ease-out-expo), box-shadow 260ms var(--ease-out-expo), border-color 200ms ease;
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    &:hover { transform: translateY(-4px); box-shadow: var(--shadow-lift); }
+  }
+}
+
+/* Numbers and codes. */
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
 @keyframes shimmer { 100% { transform: translateX(100%); } }
-.skeleton { position: relative; overflow: hidden; background: #E5EAF2; }
-.skeleton::after {
+.skeleton { position: relative; overflow: hidden; background: #E3E9F2; }
+.skeleton.is-shimmer::after {
   content: ""; position: absolute; inset: 0; transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6), transparent);
   animation: shimmer 1.4s infinite;
 }
+
+/* Slow drift for the welcome page's glows. */
+@keyframes aurora-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -2%, 0) scale(1.06); }
+}
+.aurora-drift { animation: aurora-drift 18s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .skeleton::after { animation: none; }
-  * { scroll-behavior: auto !important; transition: none !important; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+  *:not(.animate-spin), *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 /* GET STARTED press: a soft scale-down plus a cyan ripple from the click point. */
 .welcome-cta.is-pressed {
   transform: scale(0.96); opacity: 0;
-  box-shadow: 0 0 0 10px rgba(34, 211, 238, .12), 0 0 48px rgba(34, 211, 238, .55);
+  box-shadow: 0 0 0 10px rgb(34 211 238 / 0.12), 0 0 48px rgb(34 211 238 / 0.55);
   transition: transform 160ms ease-out, opacity 140ms ease-in 40ms, box-shadow 160ms ease-out;
 }
 .welcome-cta::after {
   content: ""; position: absolute; left: var(--rx, 50%); top: var(--ry, 50%);
   width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 9999px;
-  background: rgba(255, 255, 255, .55); transform: scale(0); opacity: 0; pointer-events: none;
+  background: rgb(255 255 255 / 0.55); transform: scale(0); opacity: 0; pointer-events: none;
 }
 .welcome-cta.is-pressed::after { animation: cta-ripple 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 @keyframes cta-ripple { 0% { transform: scale(0); opacity: .7 } 100% { transform: scale(26); opacity: 0 } }
-@media (prefers-reduced-motion: reduce) { .welcome-cta.is-pressed::after { animation: none; } }

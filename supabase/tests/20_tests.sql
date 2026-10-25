@@ -76,6 +76,8 @@ begin
   perform t.throws('anon cannot read inventory', null, 'select count(*)::text from public.inventory_items', '%permission denied%');
   perform t.throws('anon cannot create requests', null, 'select public.create_borrow_request(null,''abc'',null,current_date,current_date,''[]'')::text', '%permission denied%');
   perform t.ok('anon can read public settings', (t.as_run(null,'select public.get_public_settings()::text')::jsonb ? 'allowed_email_domains'));
+  perform t.eq('public settings include the per-request component limit (0010)',
+    t.as_run(alice, 'select public.get_public_settings() ->> ''max_items_per_request'''), '20');
 
   ------------------------------------------------------ requests don't touch stock
   r1 := t.as_run(alice, format('select public.create_borrow_request(null,''Test build'',null,%L,%L,%L)::text', today, today+7,

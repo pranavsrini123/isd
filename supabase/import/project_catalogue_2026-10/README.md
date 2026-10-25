@@ -16,12 +16,18 @@
 
 The load uses the inventory items created from the COMPONENTS Audit (found through
 `inventory_source_records`), so it creates no inventory items and changes no stock.
-Re-running it adds nothing and leaves later edits made in Admin → Projects alone.
+Re-running it while the catalogue is live only adds catalogue projects that are missing: it archives
+nothing, and projects, requirements and statuses edited in Admin → Projects (including projects added
+there since) stay as they are. Apply every audit row the catalogue uses before the first load: a
+project whose components could not be linked then stays a draft for an admin to complete in
+Admin → Projects; a re-run does not fill it in.
 
 ## Undo
 
-`rollback_catalogue.sql` sets the 40 projects to draft and gives every older project back the
-status it had before. Running `load_catalogue.sql` again republishes the catalogue. Nothing is deleted.
+`rollback_catalogue.sql` records each catalogue project's status, sets the 40 projects to draft and
+gives every older project back the status it had before. Running `load_catalogue.sql` again replaces
+the active catalogue once more and gives each catalogue project the status it had before the rollback
+(one an admin had unpublished stays unpublished). Nothing is deleted.
 
 ## Availability status (computed live)
 

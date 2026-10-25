@@ -14,7 +14,7 @@ export function IsdLabsLogo({ className = 'h-16 w-16', ...rest }) {
 /** The INVENTRA wordmark. Sized with font-size so it stays text (crisp, selectable). */
 export function Wordmark({ className = '', as: As = 'span', ...rest }) {
   return (
-    <As data-brand="wordmark" className={`inline-block font-display font-bold uppercase leading-none tracking-[0.14em] ${className}`} {...rest}>
+    <As data-brand="wordmark" className={`inline-block font-display font-extrabold uppercase leading-none tracking-[0.16em] [text-shadow:0_0_48px_rgb(34_211_238/0.35)] ${className}`} {...rest}>
       INVENTRA
     </As>
   )

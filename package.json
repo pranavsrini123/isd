@@ -10,11 +10,13 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:db": "bash supabase/tests/run_tests.sh && bash supabase/tests/concurrency.sh && bash supabase/tests/run_catalogue_tests.sh"
+    "test:db": "bash supabase/tests/run_tests.sh && bash supabase/tests/concurrency.sh && bash supabase/tests/run_catalogue_tests.sh",
+    "test:db:docker": "node supabase/tests/docker.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
     "lucide-react": "^0.525.0",
+    "motion": "^14.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.3",

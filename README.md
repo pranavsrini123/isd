@@ -61,3 +61,5 @@ Read more:
 | `npm test` | Unit tests (Vitest) for formatting, validation, parsers and error mapping |
 | `npm run test:db` | Rebuilds a throwaway local Postgres from the migrations and runs the SQL suite and the concurrency tests (needs PostgreSQL 16 binaries and bash) |
 | `npm run test:db:docker` | The same suite inside the official `postgres:16` Docker image, on any machine with Docker (Windows included) |
+
+Maintained with Claude Code

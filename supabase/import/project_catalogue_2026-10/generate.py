@@ -110,7 +110,7 @@ load = f"""-- ==================================================================
 begin;
 
 select set_config('request.jwt.claim.sub',
-  (select id::text from public.profiles where role = 'admin' and status = 'active' order by created_at limit 1), true);
+  (select id::text from public.profiles where role in ('admin', 'super_admin') and status = 'active' order by created_at limit 1), true);
 select set_config('request.jwt.claims',
   json_build_object('sub', current_setting('request.jwt.claim.sub', true), 'role', 'authenticated')::text, true);
 
@@ -201,7 +201,7 @@ rollback = f"""-- Undo load_catalogue.sql: hide the {len(PROJECTS)} catalogue pr
 -- every project to the status it had before. Nothing is deleted.
 begin;
 select set_config('request.jwt.claim.sub',
-  (select id::text from public.profiles where role = 'admin' and status = 'active' order by created_at limit 1), true);
+  (select id::text from public.profiles where role in ('admin', 'super_admin') and status = 'active' order by created_at limit 1), true);
 select set_config('request.jwt.claims',
   json_build_object('sub', current_setting('request.jwt.claim.sub', true), 'role', 'authenticated')::text, true);
 

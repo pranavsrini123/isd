@@ -22,6 +22,8 @@ const ProjectDetails = lazy(() => import('./pages/student/ProjectDetails'))
 const NewRequest = lazy(() => import('./pages/student/NewRequest'))
 const MyRequests = lazy(() => import('./pages/student/MyRequests'))
 const Profile = lazy(() => import('./pages/student/Profile'))
+const StudentEnquiries = lazy(() => import('./pages/student/Enquiries'))
+const StudentTakeaway = lazy(() => import('./pages/student/Takeaway'))
 
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
 const AdminInventory = lazy(() => import('./pages/admin/Inventory'))
@@ -34,6 +36,8 @@ const AdminUsers = lazy(() => import('./pages/admin/Users'))
 const AdminReports = lazy(() => import('./pages/admin/Reports'))
 const AdminActivity = lazy(() => import('./pages/admin/Activity'))
 const AdminSettings = lazy(() => import('./pages/admin/Settings'))
+const AdminEnquiries = lazy(() => import('./pages/admin/Enquiries'))
+const AdminTakeaway = lazy(() => import('./pages/admin/Takeaway'))
 
 export default function App() {
   if (!isConfigured) return <SetupRequired />
@@ -67,6 +71,8 @@ export default function App() {
                     <Route path="requests" element={<MyRequests />} />
                     <Route path="borrowings" element={<Navigate to="/student/requests?tab=borrowed" replace />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="enquiries" element={<StudentEnquiries />} />
+                    <Route path="takeaway" element={<StudentTakeaway />} />
                   </Route>
                   <Route element={<RequireAdmin />}>
                     <Route path="/admin" element={<AdminLayout />}>
@@ -81,6 +87,8 @@ export default function App() {
                       <Route path="reports" element={<AdminReports />} />
                       <Route path="activity" element={<AdminActivity />} />
                       <Route path="settings" element={<AdminSettings />} />
+                      <Route path="enquiries" element={<AdminEnquiries />} />
+                      <Route path="takeaway" element={<AdminTakeaway />} />
                     </Route>
                   </Route>
                 </Route>

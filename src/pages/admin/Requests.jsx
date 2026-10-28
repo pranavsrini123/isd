@@ -7,6 +7,7 @@ import { useSearchState } from '../../hooks/useSearchState'
 import { approveRequest, cancelRequest, issueRequest, listRequests, rejectRequest, requestCounts } from '../../lib/api'
 import { formatDate, formatDateTime, timeAgo, toISODate } from '../../lib/format'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 import { Badge, Button, Card, EmptyState, ErrorState, InlineError, PageHeader, Pagination, SkeletonRows, Tabs, cx } from '../../components/ui/primitives'
 import { Input, SearchInput, Textarea } from '../../components/ui/forms'
 import { ConfirmDialog, Modal } from '../../components/ui/Modal'
@@ -14,6 +15,9 @@ import { RequestStatusBadge } from '../../components/domain/badges'
 
 const PAGE_SIZE = 20
 const TABS = ['pending', 'approved', 'issued', 'rejected', 'all']
+// Admins never see pending requests (the database hides them); the queue is the Super Admin's.
+const ADMIN_TABS = ['approved', 'issued', 'rejected', 'all']
+export const requestTabsFor = (superAdmin) => (superAdmin ? TABS : ADMIN_TABS)
 const REASONS = ['Out of stock at review', 'Quantity too high for this purpose', 'Dates clash with lab schedule', 'Please collect a kit from a lab assistant instead']
 
 // One request = one grid row. Phone: a stacked card; sm: three columns; xl: one line with a column per field.
@@ -31,11 +35,14 @@ const ROW_PLAIN = cx(ROW_BASE,
 
 export default function AdminRequests() {
   const toast = useToast()
-  const [f, setF] = useSearchState({ status: 'pending', search: '', page: 1 })
+  const { isSuperAdmin } = useAuth()
+  const tabs = requestTabsFor(isSuperAdmin)
+  const [f, setF] = useSearchState({ status: tabs[0], search: '', page: 1 })
+  const status = tabs.includes(f.status) ? f.status : tabs[0]
   const [text, setText] = useState(f.search)
   const dq = useDebounce(text, 300)
   useEffect(() => { if (dq !== f.search) setF({ search: dq }) }, [dq]) // eslint-disable-line react-hooks/exhaustive-deps
-  const list = useQuery(() => listRequests({ status: f.status === 'all' ? '' : f.status, search: f.search, page: f.page, pageSize: PAGE_SIZE }), [f.status, f.search, f.page])
+  const list = useQuery(() => listRequests({ status: status === 'all' ? '' : status, search: f.search, page: f.page, pageSize: PAGE_SIZE }), [status, f.search, f.page])
   const counts = useQuery(() => requestCounts(), [])
   useRealtime(['borrow_requests', 'inventory_items'], () => { list.refetch(); counts.refetch() })
 
@@ -55,19 +62,22 @@ export default function AdminRequests() {
 
   return (
     <div>
-      <PageHeader title="Borrowing requests" subtitle="Approve to reserve stock, then issue when the student collects. Rejections need a reason."
+      <PageHeader title="Borrowing requests"
+        subtitle={isSuperAdmin
+          ? 'Approve to reserve stock, then an admin issues it when the student collects. Rejections need a reason.'
+          : 'Requests approved by the Super Admin, ready for you to issue. New requests go to the Super Admin for approval first.'}
         actions={<Button to="/admin/issuance" variant="outline" icon={PackageCheck}>Issue & returns</Button>} />
 
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:gap-6">
-        <Tabs className="min-w-0 lg:flex-1" value={f.status} onChange={(status) => setF({ status })}
-          tabs={TABS.map((s) => ({ value: s, label: s[0].toUpperCase() + s.slice(1), count: counts.data ? counts.data[s] || 0 : undefined }))} />
+        <Tabs className="min-w-0 lg:flex-1" value={status} onChange={(next) => setF({ status: next, page: 1 })}
+          tabs={tabs.map((s) => ({ value: s, label: s[0].toUpperCase() + s.slice(1), count: counts.data ? counts.data[s] || 0 : undefined }))} />
         <SearchInput className="w-full lg:mb-1 lg:w-80 lg:flex-none" value={text} onChange={setText} placeholder="Code, student, email or project" />
       </div>
 
       <Card padded={false} className="overflow-hidden">
         {list.error ? <ErrorState error={list.error} onRetry={list.refetch} />
           : list.isInitialLoading ? <SkeletonRows rows={8} />
-          : rows.length === 0 ? <EmptyState icon={ClipboardCheck} title={`No ${f.status === 'all' ? '' : f.status + ' '}requests`}>{f.status === 'pending' ? 'New requests from students appear here instantly.' : 'Nothing to show for this filter.'}</EmptyState>
+          : rows.length === 0 ? <EmptyState icon={ClipboardCheck} title={`No ${status === 'all' ? '' : status + ' '}requests`}>{status === 'pending' ? 'New requests from students appear here instantly.' : status === 'approved' ? 'Approved requests waiting to be issued appear here.' : 'Nothing to show for this filter.'}</EmptyState>
           : (
             <>
               <div className={cx('hidden border-b border-line bg-slate-50/90 px-4 py-2.5 xl:grid xl:items-center xl:gap-x-3', XL_COLS)} aria-hidden>
@@ -81,7 +91,7 @@ export default function AdminRequests() {
               </div>
               <ul className="divide-y divide-line">
                 {rows.map((r) => (
-                  <RequestRow key={r.id} r={r} expanded={open === r.id} busy={busy === r.id}
+                  <RequestRow key={r.id} r={r} canDecide={isSuperAdmin} expanded={open === r.id} busy={busy === r.id}
                     onToggle={() => setOpen(open === r.id ? null : r.id)}
                     onApprove={() => act(r.id, () => approveRequest(r.id), `${r.request_code} approved — stock reserved`)}
                     onReject={() => setRejecting(r)} onIssue={() => setIssuing(r)} onCancel={() => setCancelling(r)} />
@@ -103,8 +113,8 @@ export default function AdminRequests() {
   )
 }
 
-function RequestRow({ r, expanded, busy, onToggle, onApprove, onReject, onIssue, onCancel }) {
-  const pending = r.status === 'pending'
+function RequestRow({ r, canDecide, expanded, busy, onToggle, onApprove, onReject, onIssue, onCancel }) {
+  const pending = r.status === 'pending' && canDecide
   const approved = r.status === 'approved'
   const items = r.items || []
   const detailsId = `request-details-${r.id}`

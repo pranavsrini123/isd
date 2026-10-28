@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from '../lib/supabase'
 import { getProfile } from '../lib/api'
 import { friendlyError } from '../lib/errors'
+import { isStaff, isSuperAdmin } from '../lib/roles'
 
 const AuthContext = createContext(null)
 
@@ -74,7 +75,9 @@ export function AuthProvider({ children }) {
       loading,
       recovery,
       isVerified: Boolean(user?.email_confirmed_at || user?.confirmed_at),
-      isAdmin: profile?.role === 'admin' && profile?.status === 'active',
+      // Staff = Admin or Super Admin. The database enforces the same split.
+      isAdmin: isStaff(profile),
+      isSuperAdmin: isSuperAdmin(profile),
       isActive: profile?.status === 'active',
 
       async signIn(email, password) {
@@ -84,14 +87,14 @@ export function AuthProvider({ children }) {
         return p
       },
 
-      async signUp({ email, password, fullName, srmId }) {
+      async signUp({ email, password, fullName, srmId, department }) {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
             emailRedirectTo: redirect('/auth/callback'),
             // Only descriptive fields. The database ignores anything else (roles are never taken from here).
-            data: { full_name: fullName.trim(), srm_id: srmId?.trim() || null },
+            data: { full_name: fullName.trim(), srm_id: srmId?.trim() || null, department: department || null },
           },
         })
         if (error) throw new Error(friendlyError(error))

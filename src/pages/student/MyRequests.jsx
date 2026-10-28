@@ -15,8 +15,8 @@ import {
   requestLoanExtension, requestReturn,
 } from '../../lib/api'
 import { addDays, daysFromToday, formatDate, formatDateTime, relativeDue, toISODate } from '../../lib/format'
-import { Badge, Button, Card, EmptyState, ErrorState, IconTile, InlineError, PageHeader, SectionTitle, Skeleton, Tabs, cx } from '../../components/ui/primitives'
-import { Input, Textarea } from '../../components/ui/forms'
+import { Badge, Button, Card, EmptyState, ErrorState, IconTile, InlineError, PageHeader, SectionTitle, Skeleton, cx } from '../../components/ui/primitives'
+import { Input, Select, Textarea } from '../../components/ui/forms'
 import { ConfirmDialog, Modal } from '../../components/ui/Modal'
 import { Stagger, StaggerItem } from '../../components/ui/motion'
 import { RequestStatusBadge } from '../../components/domain/badges'
@@ -58,7 +58,26 @@ export function requestActions(r, { returnRequested = false, pendingExtension = 
   }
 }
 
-const LABELS = { all: 'All', pending: 'Pending', approved: 'Approved', issued: 'Issued', returned: 'Returned', rejected: 'Rejected' }
+const LABELS = { all: 'All', pending: 'Pending', approved: 'Approved', issued: 'Issued', returned: 'Returned', rejected: 'Rejected', borrowed: 'On loan' }
+
+/** Every filter value the page accepts, in dropdown order ("borrowed" = the On loan list). */
+export const REQUEST_FILTERS = [...REQUEST_TABS, 'borrowed']
+
+/** Unknown values (including the old "cancelled") fall back to All. */
+export function normaliseRequestFilter(value) {
+  return REQUEST_FILTERS.includes(value) ? value : 'all'
+}
+
+/** Request counts per filter. Cancelled requests count only towards All. */
+export function requestFilterCounts(requests, onLoanCount) {
+  const counts = Object.fromEntries(REQUEST_TABS.map((s) => [s, s === 'all' ? requests.length : requests.filter((r) => r.status === s).length]))
+  return { ...counts, borrowed: onLoanCount }
+}
+
+/** Dropdown options with their counts, e.g. "Pending (2)". */
+export function requestFilterOptions(counts) {
+  return REQUEST_FILTERS.map((s) => ({ value: s, label: counts && counts[s] !== undefined ? `${LABELS[s]} (${counts[s]})` : LABELS[s] }))
+}
 
 // ------------------------------------------------------------------ visual helpers
 /** Status → icon tile shown at the head of each request card (decorative). */
@@ -161,12 +180,12 @@ export default function MyRequests() {
   const refetchAll = () => { reqs.refetch(); lines.refetch(); exts.refetch() }
   useRealtime(['borrow_requests', 'borrowings', 'return_records', 'loan_extension_requests'], refetchAll)
 
-  // Unknown tab values (including the old "cancelled") fall back to All.
-  const tab = f.tab === 'borrowed' || REQUEST_TABS.includes(f.tab) ? f.tab : 'all'
+  const tab = normaliseRequestFilter(f.tab)
   const all = reqs.data || []
-  const counts = Object.fromEntries(REQUEST_TABS.map((s) => [s, s === 'all' ? all.length : all.filter((r) => r.status === s).length]))
   const openLines = (lines.data || []).filter((l) => !l.is_verified)
   const onLoanCount = new Set(openLines.map((l) => l.borrowing_id)).size
+  const counts = requestFilterCounts(all, onLoanCount)
+  const countsReady = !reqs.isInitialLoading && !lines.isInitialLoading
   const rows = tab === 'all' ? all : all.filter((r) => r.status === tab)
 
   // Loan details per borrowing, used by issued request cards.
@@ -189,11 +208,16 @@ export default function MyRequests() {
     <div>
       <PageHeader title="My requests" subtitle="Every component you have requested, with its status and what you can do next."
         actions={<Button to="/student/request" icon={Plus}>New request</Button>}>
-        <Tabs className="-mx-5 -mb-2 px-3 sm:mx-0 sm:-mb-3 sm:px-0" value={tab} onChange={(t) => setF({ tab: t })}
-          tabs={[
-            ...REQUEST_TABS.map((s) => ({ value: s, label: LABELS[s], count: counts[s] })),
-            { value: 'borrowed', label: 'On loan', count: onLoanCount },
-          ]} />
+        {/* One dropdown replaces the old row of status tabs; the choice stays in the URL (?tab=). */}
+        <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
+          <Select id="request-filter" label="Show" className="w-full sm:w-72" value={tab}
+            onChange={(e) => setF({ tab: e.target.value })} options={requestFilterOptions(countsReady ? counts : null)} />
+          <p className="pb-2.5 text-sm text-[#B9C6DE]" aria-live="polite">
+            {countsReady && (tab === 'borrowed'
+              ? `${onLoanCount} ${onLoanCount === 1 ? 'loan' : 'loans'} open`
+              : `${counts[tab]} ${counts[tab] === 1 ? 'request' : 'requests'}`)}
+          </p>
+        </div>
       </PageHeader>
 
       {tab === 'borrowed' ? (

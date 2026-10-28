@@ -344,3 +344,68 @@ export async function projectLinksNeedingReview() {
 export async function componentDemand() {
   return unwrap(await sb().from('component_demand').select('*').order('projects_count', { ascending: false }).order('item_name'))
 }
+
+// ---------------------------------------------------------------- enquiries
+// Students create and read their own; staff read all and change status. Internal
+// notes live in enquiry_events, which RLS hides from students.
+export const createEnquiry = ({ name, registrationNumber, department, description }) =>
+  rpc('create_enquiry', {
+    p_name: name, p_registration_number: registrationNumber, p_department: department, p_description: description,
+  })
+export const updateEnquiryStatus = (id, status, note) =>
+  rpc('update_enquiry_status', { p_enquiry_id: id, p_status: status, p_note: note || null })
+export async function myEnquiries(userId) {
+  return unwrap(await sb().from('enquiries').select('*').eq('student_id', userId).order('created_at', { ascending: false }))
+}
+export async function listEnquiries({ status = '', search = '', page = 1, pageSize = 20, all = false } = {}) {
+  let q = sb().from('enquiry_overview').select('*', { count: 'exact' })
+  if (status) q = q.eq('status', status)
+  if (search.trim()) {
+    const s = orSafe(search)
+    q = q.or(`enquiry_code.ilike.%${s}%,student_name.ilike.%${s}%,email.ilike.%${s}%,registration_number.ilike.%${s}%,description.ilike.%${s}%`)
+  }
+  q = q.order('created_at', { ascending: false }).order('id')
+  return unwrap(await (all ? q.limit(5000) : paginate(q, page, pageSize)))
+}
+export async function enquiryCounts() {
+  const rows = unwrap(await sb().from('enquiries').select('status'))
+  return rows.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] || 0) + 1, all: acc.all + 1 }), { all: 0 })
+}
+
+// ---------------------------------------------------------------- component take-away
+// Permission requests to take components outside the lab. No stock moves; only a
+// Super Admin can decide; the letter data comes only from get_takeaway_letter.
+export const createTakeaway = ({ name, registrationNumber, department, purpose, takeawayDate, expectedReturnDate, additionalInfo, items }) =>
+  rpc('create_takeaway_request', {
+    p_name: name,
+    p_registration_number: registrationNumber,
+    p_department: department,
+    p_purpose: purpose,
+    p_takeaway_date: takeawayDate,
+    p_expected_return_date: expectedReturnDate || null,
+    p_additional_info: additionalInfo || null,
+    p_items: items.map((i) => ({ item_id: i.item_id, qty: i.qty })),
+  })
+export const cancelTakeaway = (id) => rpc('cancel_takeaway_request', { p_request_id: id })
+export const decideTakeaway = (id, approve, note) =>
+  rpc('decide_takeaway_request', { p_request_id: id, p_approve: approve, p_note: note || null })
+export const markTakeawayDocumentReceived = (id, note) =>
+  rpc('mark_takeaway_document_received', { p_request_id: id, p_note: note || null })
+export const getTakeawayLetter = (id) => rpc('get_takeaway_letter', { p_request_id: id })
+export async function myTakeaways(userId) {
+  return unwrap(await sb().from('takeaway_overview').select('*').eq('student_id', userId).order('created_at', { ascending: false }))
+}
+export async function listTakeaways({ status = '', search = '', page = 1, pageSize = 20 } = {}) {
+  let q = sb().from('takeaway_overview').select('*', { count: 'exact' })
+  if (status) q = q.eq('status', status)
+  if (search.trim()) {
+    const s = orSafe(search)
+    q = q.or(`request_code.ilike.%${s}%,student_name.ilike.%${s}%,email.ilike.%${s}%,registration_number.ilike.%${s}%`)
+  }
+  q = q.order('created_at', { ascending: status === 'pending' }).order('id')
+  return unwrap(await paginate(q, page, pageSize))
+}
+export async function takeawayCounts() {
+  const rows = unwrap(await sb().from('takeaway_requests').select('status'))
+  return rows.reduce((acc, r) => ({ ...acc, [r.status]: (acc[r.status] || 0) + 1, all: acc.all + 1 }), { all: 0 })
+}

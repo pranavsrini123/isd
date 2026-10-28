@@ -59,7 +59,7 @@ async function openRow(search) {
 }
 
 await signup('lab.admin@srmist.edu.in', 'Admin12345', 'Lab Admin')
-sql("update public.profiles set role='admin' where email='lab.admin@srmist.edu.in'")
+sql("update public.profiles set role='super_admin' where email='lab.admin@srmist.edu.in'")
 await signup('imp.student@srmist.edu.in', 'Student123', 'Import Student')
 const stockSnapshot = sql("select string_agg(id||':'||total_qty||'/'||available_qty||'/'||reserved_qty, ',' order by id) from inventory_items")
 

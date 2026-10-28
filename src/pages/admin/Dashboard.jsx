@@ -2,6 +2,7 @@ import { Activity, ArrowRight, AlertTriangle, Boxes, CheckCircle2, ClipboardChec
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useQuery } from '../../hooks/useQuery'
 import { useRealtime } from '../../hooks/useRealtime'
+import { useAuth } from '../../context/AuthContext'
 import { dashboardStats, listActivity, listInventory, listRequests, openBorrowingLines, report } from '../../lib/api'
 import { formatDate, formatNumber, timeAgo } from '../../lib/format'
 import { Avatar, Badge, Button, Card, ErrorState, PageHeader, Skeleton, SkeletonRows, StatCard, Table, Td, Th, cx } from '../../components/ui/primitives'
@@ -60,13 +61,16 @@ function AllClear({ children }) {
 }
 
 export default function AdminDashboard() {
+  const { isSuperAdmin } = useAuth()
+  // Super Admins see the approval queue; Admins see what is approved and ready to issue.
+  const queue = isSuperAdmin ? 'pending' : 'approved'
   const stats = useQuery(() => dashboardStats(), [])
-  const pending = useQuery(() => listRequests({ status: 'pending', pageSize: 6 }), [])
+  const pending = useQuery(() => listRequests({ status: queue, pageSize: 6 }), [queue])
   const low = useQuery(() => listInventory({ sort: 'low', pageSize: 8, stock: '' }), [])
   const overdue = useQuery(() => openBorrowingLines(), [])
   const usage = useQuery(() => report('usage_over_time', { p_weeks: 12 }), [])
   const activity = useQuery(() => listActivity({ pageSize: 8 }), [])
-  useRealtime(['inventory_items', 'borrow_requests', 'borrowings', 'return_records'], () => {
+  useRealtime(['inventory_items', 'borrow_requests', 'borrowings', 'return_records', 'enquiries', 'takeaway_requests'], () => {
     stats.refetch(); pending.refetch(); low.refetch(); overdue.refetch(); activity.refetch()
   })
 
@@ -79,15 +83,17 @@ export default function AdminDashboard() {
 
   return (
     <div>
-      <PageHeader eyebrow="Admin console" title="Lab overview" subtitle="Live figures from inventory, requests and loans."
-        actions={<><Button to="/admin/requests" icon={ClipboardCheck}>Review requests</Button><Button to="/admin/inventory" variant="outline" icon={Boxes}>Inventory</Button></>} />
+      <PageHeader eyebrow={isSuperAdmin ? 'Super Admin console' : 'Admin console'} title="Lab overview" subtitle="Live figures from inventory, requests and loans."
+        actions={<><Button to="/admin/requests" icon={ClipboardCheck}>{isSuperAdmin ? 'Review requests' : 'Issue requests'}</Button><Button to="/admin/inventory" variant="outline" icon={Boxes}>Inventory</Button></>} />
       {stats.error && <Card className="mb-5"><ErrorState error={stats.error} onRetry={stats.refetch} /></Card>}
 
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Total units" value={formatNumber(s.total_units)} hint={<><N>{formatNumber(s.item_types)}</N> item types</>} icon={Boxes} accent="brand" loading={stats.isInitialLoading} to="/admin/inventory" />
         <StatCard label="Available" value={formatNumber(s.available)} hint={<><N>{formatNumber(s.reserved)}</N> reserved</>} icon={PackageOpen} accent="ok" loading={stats.isInitialLoading} />
         <StatCard label="On loan" value={formatNumber(s.borrowed)} hint={<><N>{formatNumber(s.active_borrowings)}</N> active loans</>} icon={PackageCheck} accent="cyan" loading={stats.isInitialLoading} to="/admin/issuance" />
-        <StatCard label="Pending requests" value={formatNumber(s.pending_requests)} hint={<><N>{formatNumber(s.approved_awaiting)}</N> approved, awaiting issue</>} icon={ClipboardCheck} accent="warn" loading={stats.isInitialLoading} to="/admin/requests" />
+        {isSuperAdmin
+          ? <StatCard label="Pending requests" value={formatNumber(s.pending_requests)} hint={<><N>{formatNumber(s.approved_awaiting)}</N> awaiting issue · <N>{formatNumber(s.pending_takeaways)}</N> take-away to approve</>} icon={ClipboardCheck} accent="warn" loading={stats.isInitialLoading} to="/admin/requests" />
+          : <StatCard label="Ready to issue" value={formatNumber(s.approved_awaiting)} hint={<><N>{formatNumber(s.open_enquiries)}</N> open enquiries · <N>{formatNumber(s.takeaways_awaiting_document)}</N> letters to collect</>} icon={ClipboardCheck} accent="warn" loading={stats.isInitialLoading} to="/admin/requests?status=approved" />}
         <StatCard label="Overdue" value={formatNumber(s.overdue_lines)} hint={<><N>{formatNumber(s.overdue_units)}</N> units · <N>{formatNumber(s.returns_to_verify)}</N> returns to verify</>} icon={Clock} accent="bad" loading={stats.isInitialLoading} to="/admin/issuance" />
         <StatCard label="Damaged / lost" value={`${formatNumber(s.damaged)} / ${formatNumber(s.lost)}`} hint={<><N>{formatNumber(s.low_stock)}</N> items low on stock</>} icon={Wrench} accent="none" loading={stats.isInitialLoading} to="/admin/reports" />
       </div>
@@ -95,7 +101,7 @@ export default function AdminDashboard() {
       {/* Two independent columns on wide screens; on narrower screens one column ordered by urgency. */}
       <div className="flex flex-col gap-5 xl:grid xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] xl:items-start">
         <div className="contents xl:flex xl:min-w-0 xl:flex-col xl:gap-5">
-          <Panel className="order-1" title="Pending requests" icon={ClipboardCheck} action={<PanelLink to="/admin/requests">Open queue</PanelLink>}>
+          <Panel className="order-1" title={isSuperAdmin ? 'Pending requests' : 'Ready to issue'} icon={ClipboardCheck} action={<PanelLink to={isSuperAdmin ? '/admin/requests' : '/admin/requests?status=approved'}>{isSuperAdmin ? 'Open queue' : 'Open list'}</PanelLink>}>
             {pending.error ? <ErrorState error={pending.error} onRetry={pending.refetch} />
               : pending.isInitialLoading ? <SkeletonRows rows={3} />
               : (
@@ -122,7 +128,7 @@ export default function AdminDashboard() {
                           <Td className="pr-5">{fulfil(r)}</Td>
                         </tr>
                       ))}
-                      {pending.data && pendingRows.length === 0 && <tr><Td colSpan={4} className="py-10 text-center text-muted">No pending requests. Nice and quiet.</Td></tr>}
+                      {pending.data && pendingRows.length === 0 && <tr><Td colSpan={4} className="py-10 text-center text-muted">{isSuperAdmin ? 'No pending requests. Nice and quiet.' : 'Nothing waiting to be issued.'}</Td></tr>}
                     </tbody>
                   </Table>
                   <ul className="divide-y divide-line md:hidden">
@@ -143,7 +149,7 @@ export default function AdminDashboard() {
                         </div>
                       </li>
                     ))}
-                    {pending.data && pendingRows.length === 0 && <li className="px-5 py-10 text-center text-sm text-muted">No pending requests. Nice and quiet.</li>}
+                    {pending.data && pendingRows.length === 0 && <li className="px-5 py-10 text-center text-sm text-muted">{isSuperAdmin ? 'No pending requests. Nice and quiet.' : 'Nothing waiting to be issued.'}</li>}
                   </ul>
                 </>
               )}

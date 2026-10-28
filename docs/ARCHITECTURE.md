@@ -60,6 +60,18 @@ hand-over and starts the due-date clock.
 - `supabase/tests/concurrency.sh` races two real database sessions for the last unit, the same
   issuance, the same return line, and an adjustment against an approval.
 
+### Roles, enquiries and take-away (0012)
+
+- **Super Admin** approves or rejects borrow requests (the approval queue) and take-away requests, and manages roles.
+  **Admin** issues approved requests, verifies returns and handles enquiries; RLS hides pending requests from Admins.
+  When an Admin verifies the last line of a loan, every Super Admin gets a notification.
+- **Enquiries** (`enquiries`, history in `enquiry_events`): open → in progress → resolved → closed (closed is final).
+  No stock or request is created. Staff export the log as CSV from Admin → Enquiries.
+- **Component take-away** (`takeaway_requests`, `takeaway_items`, `takeaway_events`): pending → approved / rejected /
+  cancelled; approved → submitted (an Admin records the signed paper letter). It is a permission record only: no
+  quantities move, and components still leave stock through the normal request → approve → issue path. The letter is
+  a PDF generated in the browser from `get_takeaway_letter()`, which returns data only for approved requests.
+
 ## Readiness and recommendation engine
 
 Defined in `0002_views_and_readiness.sql` and reused by every screen.

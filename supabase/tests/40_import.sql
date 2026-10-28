@@ -10,7 +10,7 @@ declare
 begin
   stu := t.mkuser('imp.student@srmist.edu.in', 'Import Student');
   adm := t.mkuser('imp.admin@srmist.edu.in', 'Import Admin');
-  update public.profiles set role = 'admin' where id = adm;
+  update public.profiles set role = 'super_admin' where id = adm;
 
   -- ---- loaded data
   perform t.eq('import: 103 source rows loaded', (select count(*)::text from public.inventory_source_records where batch_key = batch), '103');

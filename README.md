@@ -42,6 +42,7 @@ to Vercel.
 | Audited inventory import (source records, review, apply/revert, lab-use-only items) | `supabase/migrations/0007_inventory_audit_import.sql`, `0008_components_audit_2026_10_12_data.sql`, admin page `/admin/import` |
 | Project catalogue: 40 projects with project illustrations, live availability status and detail pages | `supabase/migrations/0009_project_catalogue.sql`, `supabase/import/project_catalogue_2026-10/` |
 | Request limits shown to the request form before submitting | `supabase/migrations/0010_public_request_limits.sql` |
+| Super Admin / Admin roles, mandatory department, enquiries (with CSV log), component take-away permission letters (PDF) | `supabase/migrations/0011_super_admin_role.sql`, `0012_roles_enquiries_takeaway.sql`; pages `/student/enquiries`, `/student/takeaway`, `/admin/enquiries`, `/admin/takeaway` |
 | Demo data (flagged `is_demo`) | `supabase/seed.sql` |
 | Data access (the only module that calls Supabase) | `src/lib/api.js` |
 | Student pages / admin pages | `src/pages/student`, `src/pages/admin` |

@@ -6,7 +6,8 @@ newer.
 ## 1. Create the Supabase project
 
 1. Create a project at <https://supabase.com/dashboard>. Choose the Mumbai (ap-south-1) region if it is available.
-2. Open **SQL Editor** and run each file in `supabase/migrations/` **in order** (0001 → 0010).
+2. Open **SQL Editor** and run each file in `supabase/migrations/` **in order** (0001 → 0012).
+   `0011` must be run on its own and finish before `0012` (Postgres needs the new `super_admin` role committed first).
    Paste each file's contents and click Run. Every file must finish without errors before you run the next.
    - With the Supabase CLI instead: `supabase link --project-ref <ref>` then `supabase db push`.
 3. Optional: run `supabase/seed.sql` to load the demonstration inventory and projects. Every row is
@@ -35,28 +36,38 @@ Before real students sign up, add an SMTP provider under **Authentication → Em
 enforced by a database trigger on `auth.users`, so it cannot be bypassed from the browser.
 Administrators can change the list later under **Admin → Settings**. An empty list allows any domain.
 
-## 3. Create the first administrator
+## 3. Create the first Super Admin
 
 Everyone who registers becomes a **student**. Nothing a user sends at sign-up can change that,
 and a verified SRM email does **not** make anyone an administrator.
 
-To appoint the first administrator:
+There are two staff roles (migration `0012`):
+
+| Role | Can |
+| --- | --- |
+| **Super Admin** | Approve or reject borrow requests and component take-away requests, change roles, and everything an Admin can do. Gets a notification whenever an Admin finishes verifying a return. |
+| **Admin** | Issue approved requests, verify returns, loan extensions, inventory, projects, enquiries, reports, restrict or suspend students. Cannot see pending requests at all, cannot approve or reject, cannot change roles. |
+
+When `0012` runs, every existing active `admin` becomes a `super_admin`, so nobody loses access.
+A Super Admin then switches operational staff to **Admin** under **Admin → Users**.
+
+To appoint the first Super Admin on a new project:
 1. The staff member registers normally through the app and verifies their email.
 2. A Supabase project owner runs this once in the SQL Editor (it runs with owner rights, which
    browser users never have):
 
 ```sql
 update public.profiles
-   set role = 'admin', status = 'active'
+   set role = 'super_admin', status = 'active'
  where email = 'lab.staff.member@srmist.edu.in';   -- the staff member's address
 
 -- check
-select email, role, status from public.profiles where role = 'admin';
+select email, role, status from public.profiles where role in ('admin', 'super_admin');
 ```
 
-After that, administrators appoint or remove other administrators from **Admin → Users**.
-Every change is written to the activity log. An admin cannot change their own role or status,
-so the console can never be left without an administrator by accident.
+After that, Super Admins appoint Admins and other Super Admins from **Admin → Users**.
+Every change is written to the activity log. Nobody can change their own role or status, and the
+last active Super Admin cannot be demoted, so the console always keeps a Super Admin.
 
 ## 4. Storage
 

@@ -96,6 +96,21 @@ export const REQUEST_STATUS = {
   returned:  { label: 'Returned',  tone: 'ok' },
 }
 
+export const ENQUIRY_STATUS = {
+  open:        { label: 'Open',        tone: 'warn' },
+  in_progress: { label: 'In progress', tone: 'info' },
+  resolved:    { label: 'Resolved',    tone: 'ok' },
+  closed:      { label: 'Closed',      tone: 'neutral' },
+}
+
+export const TAKEAWAY_STATUS = {
+  pending:   { label: 'Pending approval',   tone: 'warn' },
+  approved:  { label: 'Approved',           tone: 'info' },
+  rejected:  { label: 'Rejected',           tone: 'bad' },
+  cancelled: { label: 'Cancelled',          tone: 'neutral' },
+  submitted: { label: 'Submitted to admin', tone: 'ok' },
+}
+
 export const STOCK_STATUS = {
   in_stock:     { label: 'In stock',     tone: 'ok' },
   low_stock:    { label: 'Low stock',    tone: 'warn' },

@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import { IsdLabsLogo, Wordmark } from '../../components/brand/Brand'
 import { captureBrand, prefersReducedMotion } from '../../lib/brandTransition'
 import { useAuth } from '../../context/AuthContext'
+import { homePath } from '../../lib/roles'
 
 /**
  * INVENTRA welcome screen. GET STARTED records where the brand elements are and
@@ -18,7 +19,7 @@ export default function Welcome() {
   function start(e) {
     if (leaving) return // ignore repeated clicks
     setLeaving(true)
-    const home = session && profile ? (profile.role === 'admin' ? '/admin' : '/student') : null
+    const home = session && profile ? homePath(profile) : null
     if (home) { nav(home); return }
     const btn = e.currentTarget
     const r = btn.getBoundingClientRect()

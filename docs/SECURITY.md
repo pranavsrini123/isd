@@ -26,11 +26,14 @@ The browser only ever holds the public anon key and the user's own session.
 | `inventory_items` | signed-in users (students: non-archived only) | admins may insert and edit descriptive fields; nobody may delete | Quantities are blocked by `guard_inventory_items` for every client session (admins too) and change only through `adjust_inventory` and the workflow functions, so every movement is audited and atomic. Items are archived, never deleted, to keep history. |
 | `projects` | students: published only; admins: all | admins | Publishing requires at least one component (trigger). |
 | `project_components` | when the parent project is visible | admins | |
-| `borrow_requests`, `request_items` | the requester; admins | nobody | Created by `create_borrow_request`; status changes only through the workflow functions. |
+| `borrow_requests`, `request_items` | the requester; Super Admins; Admins **except while pending** | nobody | Created by `create_borrow_request`; status changes only through the workflow functions. The approval queue belongs to Super Admins (0012), so Admins cannot read pending requests, their items or their activity-log entries. |
 | `borrowings`, `borrowing_items`, `return_records` | the borrower; admins | nobody | Created only by `issue_request` and `verify_return`. |
 | `loan_extension_requests` | the borrower; admins | nobody (`request_loan_extension`, `cancel_loan_extension`, `review_loan_extension`) | The due date in `borrowings` changes only inside `review_loan_extension` after an admin approves. |
 | `notifications` | the recipient only | nobody (`mark_notifications_read` for read state) | |
 | `activity_logs` | admins | nobody | Append-only, written by functions and audit triggers. |
+| `enquiries` | the student who sent it; staff (Admin and Super Admin) | nobody (`create_enquiry`, `update_enquiry_status`) | Never deleted. |
+| `enquiry_events` | staff only | nobody | Status history with internal notes, so students never see the notes. |
+| `takeaway_requests`, `takeaway_items`, `takeaway_events` | the student; Super Admins; Admins **except while pending** | nobody (`create_takeaway_request`, `cancel_takeaway_request`, `decide_takeaway_request`, `mark_takeaway_document_received`) | Only a Super Admin decides. Letter data comes only from `get_takeaway_letter`, which refuses anything not approved. No stock moves. |
 | `storage.objects` (`lab-images`) | public read | admins only | Images are not sensitive. Bucket limits: 2 MB, JPG/PNG/WebP. |
 
 Views (`inventory_overview`, `project_readiness`, `request_overview`, `borrowing_lines`,
@@ -43,8 +46,10 @@ Views (`inventory_overview`, `project_readiness`, `request_overview`, `borrowing
 | `create_borrow_request` | student/admin | signed in; account `active`; items exist, are not archived, are in stock; quantities positive; start date not in the past; loan ≤ `max_loan_days`; ≤ `max_items_per_request`; < `max_pending_requests` pending; project is published |
 | `cancel_borrow_request` | owner or admin | only pending/approved; releases a reservation |
 | `request_return` | borrower | own active loan; idempotent |
-| `approve_request`, `reject_request`, `issue_request`, `verify_return`, `adjust_inventory` | admin | `_require_admin()` = role `admin` **and** status `active`; status preconditions; row locks; quantity checks |
-| `admin_set_user_role`, `admin_set_user_status` | admin | cannot change yourself; logged |
+| `approve_request`, `reject_request`, `decide_takeaway_request` | Super Admin | `_require_super_admin()` = role `super_admin` **and** status `active`; status preconditions; row locks |
+| `issue_request`, `verify_return`, `adjust_inventory`, `update_enquiry_status`, `mark_takeaway_document_received` | admin (either staff role) | `_require_admin()` = role `admin` or `super_admin` **and** status `active`; status preconditions; row locks; quantity checks |
+| `admin_set_user_role` | Super Admin | cannot change yourself; the last active Super Admin cannot be demoted; logged |
+| `admin_set_user_status` | admin | cannot change yourself; only a Super Admin changes a staff account; logged |
 | `admin_update_setting` | admin | validates domains, numbers and time zones |
 | `report_*`, `admin_dashboard_stats` | admin | admin only |
 | `get_ranked_projects` | signed-in | `security invoker`: RLS applies |
@@ -55,6 +60,7 @@ Views (`inventory_overview`, `project_readiness`, `request_overview`, `borrowing
 - New accounts are always `student`. `handle_new_user` ignores any role in sign-up metadata.
 - Sign-up is limited to the allowed domains by a trigger on `auth.users`. Email verification is
   required (Supabase setting) and also checked by the UI before entering the app.
+- Staff roles (0012): **Super Admin** (approvals, take-away decisions, role changes, everything an Admin can do) and **Admin** (operations). `is_admin()` means either staff role; `is_super_admin()` the first.
 - **A verified SRM email never grants admin rights.** The first admin is appointed with owner SQL
   (see SETUP.md). After that, admins appoint admins and every change is logged.
 - A `suspended` user is locked out of the app and cannot use admin functions. A `restricted` user

@@ -15,7 +15,7 @@ read -r ADM S1 S2 ITEM <<<"$($P -c "
          t.mkuser('cs1@srmist.edu.in','C One')::text || ' ' ||
          t.mkuser('cs2@srmist.edu.in','C Two')::text || ' ' ||
          (select id from public.inventory_items where name='Piezo Buzzer')::text")"
-$P -c "update public.profiles set role='admin' where id='$ADM'" >/dev/null
+$P -c "update public.profiles set role='super_admin' where id='$ADM'" >/dev/null
 # Leave exactly one buzzer available (as superuser, keeping the invariant).
 $P -c "update public.inventory_items set total_qty=1, available_qty=1 where id='$ITEM'" >/dev/null
 TODAY=$($P -c "select public.lab_today()")
@@ -61,4 +61,16 @@ sleep 0.3
 wait
 check "race adjust vs approve: approval refused after stock removed" "$(grep -c 'Not enough' /tmp/isd_b.out)" "1"
 check "race adjust vs approve: invariant holds, nothing negative" "$($P -c "select count(*) from public.inventory_items where total_qty<>available_qty+reserved_qty+borrowed_qty+damaged_qty+lost_qty or available_qty<0")" "0"
+
+# 5. Two super admins decide the same take-away request at the same time (0012).
+$P -c "update public.profiles set srm_id='RA2311003019999', department='CTech' where id='$S1'" >/dev/null
+ITEM2=$($P -c "select id from public.inventory_items where not is_archived and total_qty > 0 order by name limit 1")
+TKA=$($P -c "select t.as_run('$S1', format('select public.create_takeaway_request(%L,%L,%L,%L,%L,null,null,%L)::text','C One','RA2311003019999','CTech','Race test for take-away decisions','$TODAY'::date,'[{\"item_id\":\"$ITEM2\",\"qty\":1}]'))")
+( echo "$(as_admin "select public.decide_takeaway_request('$TKA', true, null);" 1.5)" | $P 2>&1 ) > /tmp/isd_a.out &
+sleep 0.3
+( echo "$(as_admin "select public.decide_takeaway_request('$TKA', false, 'Rejected in a race');")" | $P 2>&1 ) > /tmp/isd_b.out &
+wait
+check "race take-away: first decision wins (approved)" "$($P -c "select status from public.takeaway_requests where id='$TKA'")" "approved"
+check "race take-away: second decision refused" "$(grep -c 'cannot be decided again' /tmp/isd_b.out)" "1"
+check "race take-away: exactly one decision event" "$($P -c "select count(*) from public.takeaway_events where request_id='$TKA' and from_status='pending'")" "1"
 exit $fail

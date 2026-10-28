@@ -76,3 +76,87 @@ describe('project availability status (mirrors _project_availability in SQL)', (
     expect(availabilityOf({ n_required: 0, n_satisfied: 0 }, ['Filament'])).toBe('requires_external')
   })
 })
+
+// ------------------------------------------------------------------ 0012 features
+import { normaliseRequestFilter, requestFilterCounts, requestFilterOptions } from './student/MyRequests'
+import { validateEnquiry } from './student/Enquiries'
+import { canDownloadLetter, validateTakeaway } from './student/Takeaway'
+import { enquiryLogCsv } from './admin/Enquiries'
+import { requestTabsFor } from './admin/Requests'
+import { takeawayTabsFor } from './admin/Takeaway'
+
+describe('My requests status dropdown', () => {
+  const reqs = [{ status: 'pending' }, { status: 'pending' }, { status: 'issued' }, { status: 'cancelled' }, { status: 'returned' }]
+  it('counts every status, with cancelled only under All', () => {
+    expect(requestFilterCounts(reqs, 1)).toEqual({ all: 5, pending: 2, approved: 0, issued: 1, returned: 1, rejected: 0, borrowed: 1 })
+  })
+  it('lists all seven filters with their counts', () => {
+    const opts = requestFilterOptions(requestFilterCounts(reqs, 1))
+    expect(opts.map((o) => o.value)).toEqual(['all', 'pending', 'approved', 'issued', 'returned', 'rejected', 'borrowed'])
+    expect(opts.map((o) => o.label)).toEqual(['All (5)', 'Pending (2)', 'Approved (0)', 'Issued (1)', 'Returned (1)', 'Rejected (0)', 'On loan (1)'])
+    expect(requestFilterOptions(null)[1].label).toBe('Pending') // while loading
+  })
+  it('falls back to All for unknown values in the URL', () => {
+    expect(normaliseRequestFilter('borrowed')).toBe('borrowed')
+    expect(normaliseRequestFilter('cancelled')).toBe('all')
+    expect(normaliseRequestFilter(undefined)).toBe('all')
+  })
+})
+
+describe('enquiry form', () => {
+  const ok = { name: 'Ananya', registrationNumber: 'RA2311003010001', dept: { choice: 'CTech', other: '' }, description: 'Is a Jetson Nano free?' }
+  it('accepts a complete enquiry', () => expect(validateEnquiry(ok)).toEqual({}))
+  it('flags missing fields', () => {
+    const e = validateEnquiry({ name: '', registrationNumber: '12', dept: { choice: 'other', other: '' }, description: 'short' })
+    expect(Object.keys(e).sort()).toEqual(['department', 'description', 'name', 'registrationNumber'])
+  })
+})
+
+describe('take-away form', () => {
+  const today = '2026-10-29'
+  const ok = { name: 'Ananya', registrationNumber: 'RA2311003010001', dept: { choice: 'CTech', other: '' },
+    purpose: 'Field test on the campus track', takeawayDate: today, expectedReturnDate: '', lines: [{ item_id: 'a', qty: 2, max: 5 }] }
+  it('accepts a complete request', () => expect(validateTakeaway(ok, today)).toEqual({}))
+  it('checks dates, components and quantities', () => {
+    expect(validateTakeaway({ ...ok, takeawayDate: '2026-10-28' }, today).takeawayDate).toMatch(/past/)
+    expect(validateTakeaway({ ...ok, expectedReturnDate: '2026-10-28' }, today).expectedReturnDate).toMatch(/on or after/)
+    expect(validateTakeaway({ ...ok, lines: [] }, today).lines).toMatch(/at least one/)
+    expect(validateTakeaway({ ...ok, lines: [{ item_id: 'a', qty: 9, max: 5 }] }, today).lines).toMatch(/quantities/)
+  })
+  it('offers the letter only after approval', () => {
+    expect(['pending', 'approved', 'rejected', 'cancelled', 'submitted'].filter((status) => canDownloadLetter({ status })))
+      .toEqual(['approved', 'submitted'])
+  })
+})
+
+describe('enquiry log CSV', () => {
+  const row = {
+    enquiry_code: 'ENQ-1001', student_name: '=cmd|"/c calc"!A1', registration_number: 'RA2311003010001', email: 'a@srmist.edu.in',
+    department: 'CTech', description: 'Need, "quoted" text\nover two lines', created_at: '2026-10-28T09:15:00Z', updated_at: '2026-10-28T10:00:00Z',
+    status: 'resolved', resolution_note: '+1 free from Monday', handled_by_name: 'Lab Admin',
+    history: [{ from: null, to: 'open', at: '2026-10-28T09:15:00Z', by: 'Ananya' }, { from: 'open', to: 'resolved', at: '2026-10-28T10:00:00Z', by: 'Lab Admin', note: 'done' }],
+  }
+  it('has the required columns', () => {
+    expect(enquiryLogCsv([row]).split('\n')[0]).toBe('Enquiry ID,Student name,Registration number,Email ID,Department,Enquiry description,Submitted at,Current status,Resolution note,Last handled by,Last updated,Status history')
+  })
+  it('neutralises formulas and keeps quotes and history', () => {
+    const csv = enquiryLogCsv([row])
+    expect(csv).toContain(`"'=cmd|""/c calc""!A1"`)
+    expect(csv).toContain(`"'+1 free from Monday"`)
+    expect(csv).toContain('"Need, ""quoted"" text\nover two lines"')
+    expect(csv).toContain('2026-10-28 14:45 IST')
+    expect(csv).toContain('Open -> Resolved (Lab Admin) - done')
+  })
+  it('writes just the header when there is nothing to export', () => {
+    expect(enquiryLogCsv([]).split('\n')).toHaveLength(1)
+  })
+})
+
+describe('staff screens by role', () => {
+  it('only super admins get the pending queues', () => {
+    expect(requestTabsFor(true)).toContain('pending')
+    expect(requestTabsFor(false)).not.toContain('pending')
+    expect(takeawayTabsFor(true)[0]).toBe('pending')
+    expect(takeawayTabsFor(false)).not.toContain('pending')
+  })
+})

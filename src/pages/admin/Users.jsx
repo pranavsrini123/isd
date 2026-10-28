@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, ShieldCheck, Users as UsersIcon } from 'lucide-react'
+import { ArrowRight, Crown, ShieldCheck, Users as UsersIcon } from 'lucide-react'
 import { useQuery } from '../../hooks/useQuery'
 import { useDebounce } from '../../hooks/useDebounce'
 import { useSearchState } from '../../hooks/useSearchState'
@@ -14,13 +14,14 @@ import { RequestStatusBadge } from '../../components/domain/badges'
 
 const PAGE_SIZE = 20
 const STATUS_TONE = { active: 'ok', restricted: 'warn', suspended: 'bad' }
-const ROLE_OPTIONS = [{ value: 'student', label: 'Student' }, { value: 'admin', label: 'Admin' }]
+const ROLE_OPTIONS = [{ value: 'student', label: 'Student' }, { value: 'admin', label: 'Admin' }, { value: 'super_admin', label: 'Super Admin' }]
+const isStaffRole = (role) => role === 'admin' || role === 'super_admin'
 const STATUS_OPTIONS = [{ value: 'active', label: 'Active' }, { value: 'restricted', label: 'Restricted' }, { value: 'suspended', label: 'Suspended' }]
 // Compact select chrome for the per-row controls.
 const ROW_SELECT = '!min-h-9 !rounded-lg !pl-3 !text-[13px] font-medium'
 
 export default function AdminUsers() {
-  const { profile: me } = useAuth()
+  const { profile: me, isSuperAdmin } = useAuth()
   const toast = useToast()
   const [f, setF] = useSearchState({ search: '', role: '', status: '', page: 1 })
   const [text, setText] = useState(f.search)
@@ -45,12 +46,14 @@ export default function AdminUsers() {
 
   return (
     <div>
-      <PageHeader title="Users" subtitle="Accounts register as students. Only administrators can grant admin access or restrict an account." />
+      <PageHeader title="Users" subtitle={isSuperAdmin
+        ? 'Accounts register as students. As Super Admin you appoint Admins (lab operations) and Super Admins (approvals and roles).'
+        : 'Accounts register as students. Admins can restrict or suspend student accounts; only a Super Admin changes roles or staff accounts.'} />
       <Card padded={false} className="overflow-hidden">
         {/* Toolbar: search + filters. Phone: search on top, filters side by side. */}
         <div className="grid grid-cols-2 gap-2.5 border-b border-line bg-slate-50/60 p-3 sm:p-4 md:grid-cols-[minmax(0,1fr)_180px_180px] md:gap-3">
           <SearchInput className="col-span-2 md:col-span-1" value={text} onChange={setText} placeholder="Name, email or register number" />
-          <Select aria-label="Role" value={f.role} onChange={(e) => setF({ role: e.target.value })} placeholder="All roles" options={[{ value: 'student', label: 'Students' }, { value: 'admin', label: 'Admins' }]} />
+          <Select aria-label="Role" value={f.role} onChange={(e) => setF({ role: e.target.value })} placeholder="All roles" options={[{ value: 'student', label: 'Students' }, { value: 'admin', label: 'Admins' }, { value: 'super_admin', label: 'Super Admins' }]} />
           <Select aria-label="Status" value={f.status} onChange={(e) => setF({ status: e.target.value })} placeholder="Any status" options={STATUS_OPTIONS} />
         </div>
         {list.error ? <ErrorState error={list.error} onRetry={list.refetch} />
@@ -75,7 +78,7 @@ export default function AdminUsers() {
                           <Td><StatusBadge status={u.status} /></Td>
                           <Td className="whitespace-nowrap text-[13px] text-muted">{formatDate(u.created_at)}</Td>
                           <Td>
-                            <RowSelects user={u} self={self} onChange={setChange} className="flex justify-end gap-2" roleClass="w-[118px]" statusClass="w-[134px]" />
+                            <RowSelects user={u} self={self} canRole={isSuperAdmin} canStatus={isSuperAdmin || !isStaffRole(u.role)} onChange={setChange} className="flex justify-end gap-2" roleClass="w-[136px]" statusClass="w-[134px]" />
                           </Td>
                         </tr>
                       )
@@ -102,7 +105,7 @@ export default function AdminUsers() {
                           <p className="mt-1.5 text-xs text-muted">Joined {formatDate(u.created_at)}</p>
                         </div>
                       </div>
-                      <RowSelects user={u} self={self} onChange={setChange} className="mt-3 grid grid-cols-2 gap-2 pl-11" />
+                      <RowSelects user={u} self={self} canRole={isSuperAdmin} canStatus={isSuperAdmin || !isStaffRole(u.role)} onChange={setChange} className="mt-3 grid grid-cols-2 gap-2 pl-11" />
                     </li>
                   )
                 })}
@@ -113,7 +116,7 @@ export default function AdminUsers() {
       <Pagination page={f.page} pageSize={PAGE_SIZE} total={list.data?.count} onPage={(page) => setF({ page })} />
 
       <ConfirmDialog open={!!change} onClose={() => setChange(null)} onConfirm={apply} loading={busy}
-        tone={change?.value === 'admin' || change?.value === 'suspended' ? 'danger' : 'primary'}
+        tone={change?.value === 'admin' || change?.value === 'super_admin' || change?.value === 'suspended' ? 'danger' : 'primary'}
         title={change ? `Change ${change.kind} for ${change.user.full_name}?` : ''} confirmLabel="Confirm change">
         {change && (
           <div className="mb-3.5 flex flex-wrap items-center gap-2.5 rounded-lg border border-line bg-slate-50 px-3 py-2.5">
@@ -122,7 +125,8 @@ export default function AdminUsers() {
             {change.kind === 'role' ? <RoleBadge role={change.value} /> : <StatusBadge status={change.value} />}
           </div>
         )}
-        {change?.kind === 'role' && change.value === 'admin' && 'Administrators can change stock, approve requests and manage every account. Only grant this to lab staff.'}
+        {change?.kind === 'role' && change.value === 'admin' && 'Admins run lab operations: issue approved requests, verify returns, manage inventory, projects and enquiries. They cannot see or approve pending requests. Only grant this to lab staff.'}
+        {change?.kind === 'role' && change.value === 'super_admin' && 'Super Admins approve or reject requests and take-away permissions, change roles and can do everything an Admin can. Grant this sparingly.'}
         {change?.kind === 'role' && change.value === 'student' && 'They will lose access to the admin console immediately.'}
         {change?.kind === 'status' && change.value === 'restricted' && 'They can still sign in and browse, but cannot submit new requests.'}
         {change?.kind === 'status' && change.value === 'suspended' && 'They will be locked out of the app. Loans in progress stay on record.'}
@@ -135,9 +139,9 @@ export default function AdminUsers() {
 }
 
 function RoleBadge({ role }) {
-  return role === 'admin'
-    ? <Badge tone="info"><ShieldCheck className="h-3 w-3" aria-hidden />Admin</Badge>
-    : <Badge tone="neutral">Student</Badge>
+  if (role === 'super_admin') return <Badge tone="cyan"><Crown className="h-3 w-3" aria-hidden />Super Admin</Badge>
+  if (role === 'admin') return <Badge tone="info"><ShieldCheck className="h-3 w-3" aria-hidden />Admin</Badge>
+  return <Badge tone="neutral">Student</Badge>
 }
 
 function StatusBadge({ status }) {
@@ -161,16 +165,16 @@ function UserButton({ user, self, onOpen, avatar = true }) {
 }
 
 /** Role and status controls for one row; picking a value asks for confirmation. */
-function RowSelects({ user, self, onChange, className, roleClass, statusClass }) {
+function RowSelects({ user, self, canRole, canStatus, onChange, className, roleClass, statusClass }) {
   return (
     <div className={className}>
       <div className={cx('min-w-0', roleClass)}>
-        <Select aria-label={`Role for ${user.full_name}`} className={ROW_SELECT} value={user.role} disabled={self}
+        <Select aria-label={`Role for ${user.full_name}`} className={ROW_SELECT} value={user.role} disabled={self || !canRole} title={!canRole ? 'Only a Super Admin can change roles' : undefined}
           onChange={(e) => onChange({ user, kind: 'role', value: e.target.value })}
           options={ROLE_OPTIONS} />
       </div>
       <div className={cx('min-w-0', statusClass)}>
-        <Select aria-label={`Status for ${user.full_name}`} className={ROW_SELECT} value={user.status} disabled={self}
+        <Select aria-label={`Status for ${user.full_name}`} className={ROW_SELECT} value={user.status} disabled={self || !canStatus} title={!canStatus ? 'Only a Super Admin can change a staff account' : undefined}
           onChange={(e) => onChange({ user, kind: 'status', value: e.target.value })}
           options={STATUS_OPTIONS} />
       </div>

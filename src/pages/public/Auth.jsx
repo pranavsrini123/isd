@@ -8,6 +8,9 @@ import { Input } from '../../components/ui/forms'
 import { useAuth } from '../../context/AuthContext'
 import { getPublicSettings } from '../../lib/api'
 import { useQuery } from '../../hooks/useQuery'
+import { homePath } from '../../lib/roles'
+import { departmentError, joinDepartment } from '../../lib/department'
+import { DepartmentField } from '../../components/domain/DepartmentField'
 import { hasErrors, isValidEmail, passwordProblems, validateSignup } from '../../lib/validation'
 
 /**
@@ -185,8 +188,8 @@ export function Login() {
     try {
       const p = await signIn(email, password)
       const from = loc.state?.from
-      const home = p?.role === 'admin' ? '/admin' : '/student'
-      nav(from && from !== '/login' && (!from.startsWith('/admin') || p?.role === 'admin') ? from : home, { replace: true })
+      const home = homePath(p)
+      nav(from && from !== '/login' && (!from.startsWith('/admin') || home === '/admin') ? from : home, { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -227,6 +230,7 @@ export function Register() {
   const { data: settings } = useQuery(() => getPublicSettings(), [])
   const allowed = settings?.allowed_email_domains || []
   const [form, setForm] = useState({ fullName: '', email: '', srmId: '', password: '', confirm: '' })
+  const [dept, setDept] = useState({ choice: '', other: '' })
   const [errors, setErrors] = useState({})
   const [error, setError] = useState('')
   const [pending, setPending] = useState(false)
@@ -236,11 +240,13 @@ export function Register() {
     e.preventDefault()
     setError('')
     const v = validateSignup(form, allowed)
+    const dErr = departmentError(dept)
+    if (dErr) v.department = dErr
     setErrors(v)
     if (hasErrors(v)) return
     setPending(true)
     try {
-      const res = await signUp(form)
+      const res = await signUp({ ...form, department: joinDepartment(dept) })
       if (res.needsVerification) nav('/verify-email', { state: { email: form.email.trim(), justRegistered: true } })
       else nav('/student', { replace: true })
     } catch (err) {
@@ -260,6 +266,7 @@ export function Register() {
         <Input label="Full name" autoComplete="name" value={form.fullName} onChange={set('fullName')} error={errors.fullName} required />
         <Input label="SRM email" type="email" autoComplete="email" value={form.email} onChange={set('email')} error={errors.email} placeholder="you@srmist.edu.in" required />
         <Input label="Register number" hint="Optional · 6–20 letters or digits" value={form.srmId} onChange={set('srmId')} error={errors.srmId} autoComplete="off" />
+        <DepartmentField value={dept} onChange={(d) => { setDept(d); if (errors.department) setErrors((e) => ({ ...e, department: '' })) }} error={errors.department} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Password" type="password" autoComplete="new-password" value={form.password} onChange={set('password')} error={errors.password} hint="8+ characters, a letter and a number" required />
           <Input label="Confirm password" type="password" autoComplete="new-password" value={form.confirm} onChange={set('confirm')} error={errors.confirm} required />
@@ -283,7 +290,7 @@ export function VerifyEmail() {
   const [status, setStatus] = useState('')
   const [error, setError] = useState('')
   useEffect(() => {
-    if (session && isVerified && profile) nav(profile.role === 'admin' ? '/admin' : '/student', { replace: true })
+    if (session && isVerified && profile) nav(homePath(profile), { replace: true })
   }, [session, isVerified, profile, nav])
   return (
     <AuthLayout>
@@ -383,7 +390,7 @@ export function ResetPassword() {
     setPending(true)
     try {
       await updatePassword(pw)
-      nav(profile?.role === 'admin' ? '/admin' : '/student', { replace: true })
+      nav(homePath(profile), { replace: true })
     } catch (err) {
       setError(err.message)
     } finally {
@@ -413,7 +420,7 @@ export function AuthCallback() {
   const [timedOut, setTimedOut] = useState(false)
   useEffect(() => { const t = setTimeout(() => setTimedOut(true), 8000); return () => clearTimeout(t) }, [])
   useEffect(() => {
-    if (!loading && session && isVerified && profile) nav(profile.role === 'admin' ? '/admin' : '/student', { replace: true })
+    if (!loading && session && isVerified && profile) nav(homePath(profile), { replace: true })
   }, [loading, session, isVerified, profile, nav])
 
   if (urlError || timedOut) {

@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, GraduationCap, IdCard, Lock, Mail, Plus, Save, SlidersHorizontal, UserRound } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../context/ToastContext'
 import { updateMyProfile, projectCategories } from '../../lib/api'
 import { useQuery } from '../../hooks/useQuery'
 import { isValidSrmId } from '../../lib/validation'
+import { departmentError, joinDepartment, splitDepartment } from '../../lib/department'
+import { roleLabel } from '../../lib/roles'
+import { DepartmentField } from '../../components/domain/DepartmentField'
 import { Avatar, Badge, Button, Card, Hero, IconTile, cx } from '../../components/ui/primitives'
 import { Field, Input, Select } from '../../components/ui/forms'
 import { Stagger, StaggerItem } from '../../components/ui/motion'
@@ -53,18 +56,24 @@ export default function Profile() {
   const [form, setForm] = useState({
     full_name: profile.full_name || '',
     srm_id: profile.srm_id || '',
-    department: profile.department || '',
+    department: splitDepartment(profile.department),
     preferred_difficulty: profile.preferred_difficulty || '',
     interests: profile.interests || [],
   })
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  // "Add it now" in the missing-department banner links to #department.
+  useEffect(() => {
+    if (window.location.hash === '#department') document.getElementById('department')?.scrollIntoView({ block: 'center' })
+  }, [])
 
   async function save(e) {
     e.preventDefault()
     const v = {}
     if (form.full_name.trim().length < 2) v.full_name = 'Enter your full name'
     if (!isValidSrmId(form.srm_id)) v.srm_id = '6–20 letters or digits'
+    const dErr = departmentError(form.department)
+    if (dErr) v.department = dErr
     setErrors(v)
     if (Object.keys(v).length) return
     setSaving(true)
@@ -72,7 +81,7 @@ export default function Profile() {
       const updated = await updateMyProfile(profile.id, {
         full_name: form.full_name.trim(),
         srm_id: form.srm_id.trim() ? form.srm_id.trim().toUpperCase() : null,
-        department: form.department.trim() || null,
+        department: joinDepartment(form.department),
         preferred_difficulty: form.preferred_difficulty || null,
         interests: form.interests,
       })
@@ -89,7 +98,7 @@ export default function Profile() {
   // Purely visual: marks the save button while the form differs from the saved profile.
   const dirty = form.full_name.trim() !== (profile.full_name || '')
     || form.srm_id.trim().toUpperCase() !== (profile.srm_id || '')
-    || form.department.trim() !== (profile.department || '')
+    || joinDepartment(form.department) !== (profile.department || '')
     || form.preferred_difficulty !== (profile.preferred_difficulty || '')
     || !sameList(form.interests, profile.interests || [])
 
@@ -111,7 +120,7 @@ export default function Profile() {
         <div className="flex flex-wrap items-center gap-2">
           <HeroChip icon={Mail}>{profile.email}</HeroChip>
           {profile.srm_id && <HeroChip icon={IdCard}><span className="num">{profile.srm_id}</span></HeroChip>}
-          <Badge tone={profile.role === 'admin' ? 'info' : 'cyan'} dot>{profile.role === 'admin' ? 'Administrator' : 'Student'}</Badge>
+          <Badge tone={profile.role === 'student' ? 'cyan' : 'info'} dot>{roleLabel(profile.role)}</Badge>
           {profile.status !== 'active' && <Badge tone="warn">{profile.status}</Badge>}
         </div>
       </Hero>
@@ -126,8 +135,15 @@ export default function Profile() {
                   onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
                 <IconInput id="profile-srm-id" label="Register number" icon={IdCard} inputClassName="num" value={form.srm_id} error={errors.srm_id} maxLength={20}
                   onChange={(e) => setForm({ ...form, srm_id: e.target.value })} />
-                <IconInput id="profile-department" label="Department" icon={GraduationCap} value={form.department} maxLength={120}
-                  onChange={(e) => setForm({ ...form, department: e.target.value })} className="sm:col-span-2 xl:col-span-1" />
+                <div id="department" className="scroll-mt-24 sm:col-span-2 xl:col-span-1">
+                  {!profile.department && (
+                    <p className="mb-3 flex items-start gap-2 rounded-xl bg-warn-bg px-3 py-2 text-[13px] font-medium text-warn" role="status">
+                      <GraduationCap className="mt-px h-4 w-4 flex-none" aria-hidden />Add your department. It is required and is filled into your requests and enquiries.
+                    </p>
+                  )}
+                  <DepartmentField value={form.department} error={errors.department}
+                    onChange={(d) => { setForm({ ...form, department: d }); if (errors.department) setErrors({ ...errors, department: '' }) }} />
+                </div>
               </div>
               <p className="mt-6 flex items-start gap-2.5 border-t border-line/80 pt-4 text-xs leading-relaxed text-muted">
                 <span className="mt-px flex h-5 w-5 flex-none items-center justify-center rounded-md bg-slate-100 text-subtle" aria-hidden><Lock className="h-3 w-3" /></span>

@@ -3,6 +3,7 @@ import { ShieldAlert, UserX } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { Button, IconTile, PageLoader } from '../ui/primitives'
 import { Logo } from './Logo'
+import { homePath } from '../../lib/roles'
 
 function Centered({ icon: Icon, title, children, action }) {
   return (
@@ -61,6 +62,6 @@ export function RequireAdmin() {
 export function RedirectIfSignedIn({ children }) {
   const { loading, session, profile, isVerified } = useAuth()
   if (loading) return <div className="min-h-dvh bg-page"><PageLoader /></div>
-  if (session && isVerified && profile) return <Navigate to={profile.role === 'admin' ? '/admin' : '/student'} replace />
+  if (session && isVerified && profile) return <Navigate to={homePath(profile)} replace />
   return children
 }

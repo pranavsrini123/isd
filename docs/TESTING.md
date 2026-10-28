@@ -45,8 +45,25 @@ re-running the load leaves admin edits alone, and rollback followed by a re-load
 - **Overdue** derivation; **admin management**; **notifications** privacy; **dashboard figures**
   equal live sums; every report runs
 
-`concurrency.sh`: 11 checks with two **simultaneous** sessions: competing approvals for the last
-unit, double issuance, double return verification, and an adjustment racing an approval.
+`60_roles_enquiry_takeaway.sql` (migration 0012): **133 assertions** covering:
+- **Roles**: `is_admin()` / `is_super_admin()`, nobody can promote themselves (direct update, sign-up
+  metadata or the role function), only a Super Admin changes roles or staff accounts
+- **Approval separation**: an Admin cannot see pending requests, their items, their `request_overview` rows,
+  their activity-log entries or the pending dashboard count, and cannot approve, reject or cancel them through the API;
+  the Super Admin approves and rejects; Admins then see the approved request and issue it; returns are verified
+  by the Admin and every Super Admin is notified (Admins are not)
+- **Department**: sign-up stores CTech (normalised) or a typed name, accounts without one still work and can add it,
+  a department cannot be cleared once set, length rules
+- **Enquiries**: validation, email taken from the account, no borrow request or reservation created, staff notified,
+  students see only their own, internal notes hidden from students, status history in order, closed is final, nothing deleted
+- **Take-away**: validation (dates, quantities against what the lab owns, components required), no stock change on submit
+  or approval, pending requests hidden from Admins, only a Super Admin decides (once), rejection needs a reason,
+  no letter data before approval or for rejected / cancelled requests or for other students, the letter data matches the
+  request, the Admin records the signed letter, history persisted, restricted accounts cannot request
+
+`concurrency.sh`: 14 checks with two **simultaneous** sessions: competing approvals for the last
+unit, double issuance, double return verification, an adjustment racing an approval, and two
+Super Admins deciding the same take-away request.
 
 ## 2. Unit tests: `src/**/*.test.js`
 
@@ -56,7 +73,11 @@ npm test
 
 Date handling (local calendar dates, due and overdue wording), stock and readiness helpers,
 sign-up, request and return validation (including look-alike domains such as `srmist.edu.in.evil.com`),
-error-message mapping, the build-instruction parser and CSV escaping.
+error-message mapping, the build-instruction parser and CSV escaping. Since 0012 also: role helpers,
+the department picker rules, the My requests status dropdown (options, counts, URL fallback), the
+enquiry and take-away form validation, the enquiry log CSV (columns, history, formula neutralising) and the
+PDF writer and permission letter (valid PDF structure, A4, escaping, wrapping, request details and both
+signature sections present, refused for anything not approved).
 
 ## 3. End-to-end: `harness/`
 
@@ -68,6 +89,12 @@ update round trip checked against database values, direct API attempts to self-a
 (refused), admin inventory create, adjust and history, the project editor, users, reports, activity,
 settings, notifications, the mobile layout (no horizontal overflow) and the 404 page. It also covers the dashboard without banner or quick actions, continuous inventory scrolling past one batch, toggle geometry in both states on desktop and mobile, multi-component requests with quantity changes saved exactly, My requests without the Cancelled tab or timeline (also after refresh and a new request), and the status → action mapping (Cancel / Return + Extend / Request again / Request return) with each action checked against the database. It fails on
 any browser console error.
+
+`harness/features_e2e.mjs` (`bash harness/run_features.sh`) covers the 0012 features in the browser: registration
+with the mandatory department (CTech / Other + name), the missing-department banner for older accounts, Admin vs
+Super Admin screens and API refusals, approve → issue → verify with the Super Admin notification, the My requests
+dropdown (counts, filtering, URL), enquiries end to end including the downloaded CSV log, and take-away end to end
+including the downloaded PDF letter (checked with `pdftotext`/`pdfinfo`), plus phone layouts at 390 px.
 
 The harness exists because the environment this was built in could not install npm packages.
 It bundles with esbuild. With `REAL_MODULES=<path to a real node_modules>` it uses the genuine React,

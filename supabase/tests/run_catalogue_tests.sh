@@ -9,7 +9,7 @@ cd "$(dirname "$0")"
 P="psql -h 127.0.0.1 -p ${PGTEST_PORT:-54329} -U postgres -d isdtest -v ON_ERROR_STOP=1 -q -X"
 $P -f 10_helpers.sql
 $P -At -c "select t.mkuser('cat.admin@srmist.edu.in', 'Catalogue Admin')" >/dev/null
-$P -c "update public.profiles set role = 'admin' where email = 'cat.admin@srmist.edu.in'"
+$P -c "update public.profiles set role = 'super_admin' where email = 'cat.admin@srmist.edu.in'"
 $P -f ../import/components_audit_2026-10-12/replace_inventory_with_audit.sql >/dev/null 2>&1
 stock() { $P -At -c "select md5(string_agg(id || ':' || total_qty || '/' || available_qty || '/' || damaged_qty, ',' order by id)) || ' ' || count(*) from public.inventory_items"; }
 before=$(stock)

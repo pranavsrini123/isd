@@ -7,6 +7,7 @@ import { EASE_OUT, Reveal, Stagger, StaggerItem, m, useMotionOK } from '../../co
 import { Orbit } from '../../components/ui/decor'
 import { SurfaceContext } from '../../components/ui/portal'
 import { useAuth } from '../../context/AuthContext'
+import { homePath } from '../../lib/roles'
 
 const LOOP = [
   ['Admin', 'Inventory', 'Every component is catalogued with quantity, condition and storage location.', Cpu],
@@ -67,7 +68,7 @@ function Rise({ className, children, delay = 0 }) {
 
 export default function Landing() {
   const { session, profile } = useAuth()
-  const home = profile ? (profile.role === 'admin' ? '/admin' : '/student') : null
+  const home = profile ? homePath(profile) : null
   const ok = useMotionOK()
   // Below-the-fold grids stagger in when they scroll into view (props only passed when motion plays).
   const onView = ok ? { animate: undefined, whileInView: 'show', viewport: { once: true, margin: '0px 0px -60px 0px' } } : {}

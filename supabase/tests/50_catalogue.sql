@@ -6,7 +6,7 @@ declare
   flame_proj uuid; flame uuid; smorphi_proj uuid; smorphi uuid; req uuid; p1 uuid; st text;
 begin
   stu := t.mkuser('cat.student@srmist.edu.in', 'Catalogue Student');
-  select id into adm from public.profiles where role = 'admin' order by created_at limit 1;
+  select id into adm from public.profiles where role in ('admin', 'super_admin') order by created_at limit 1;
 
   -- ---- catalogue replaced
   perform t.eq('catalogue: 40 published catalogue projects',

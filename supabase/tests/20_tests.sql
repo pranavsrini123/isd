@@ -15,7 +15,7 @@ begin
   carol := t.mkuser('carol@srmist.edu.in', 'Carol Test');
   adm   := t.mkuser('admin1@srmist.edu.in','Admin One');
   adm2  := t.mkuser('admin2@srmist.edu.in','Admin Two');
-  update public.profiles set role = 'admin' where id in (adm, adm2);   -- documented bootstrap step
+  update public.profiles set role = 'super_admin' where id in (adm, adm2);   -- documented bootstrap step (0012: first staff are super admins)
 
   begin
     perform t.mkuser('mallory@gmail.com', 'Mallory');
@@ -62,12 +62,12 @@ begin
   perform t.throws('student cannot write return records', alice, 'delete from public.return_records', '%permission denied%');
   perform t.eq('student sees 0 activity_logs rows', t.as_run(alice,'select count(*)::text from public.activity_logs'), '0');
   perform t.eq('student sees 0 app_settings rows', t.as_run(alice,'select count(*)::text from public.app_settings'), '0');
-  perform t.throws('student cannot call approve_request', alice, 'select public.approve_request(gen_random_uuid())::text', '%Administrator%');
-  perform t.throws('student cannot call reject_request', alice, 'select public.reject_request(gen_random_uuid(),''nope nope'')::text', '%Administrator%');
+  perform t.throws('student cannot call approve_request', alice, 'select public.approve_request(gen_random_uuid())::text', '%privileges required%');
+  perform t.throws('student cannot call reject_request', alice, 'select public.reject_request(gen_random_uuid(),''nope nope'')::text', '%privileges required%');
   perform t.throws('student cannot call issue_request', alice, 'select public.issue_request(gen_random_uuid())::text', '%Administrator%');
   perform t.throws('student cannot call verify_return', alice, 'select public.verify_return(gen_random_uuid(),1,0,0)::text', '%Administrator%');
   perform t.throws('student cannot call adjust_inventory', alice, 'select public.adjust_inventory('''||w||''',''add_stock'',5,''because'')::text', '%Administrator%');
-  perform t.throws('student cannot set roles', alice, 'select public.admin_set_user_role('''||bob||''',''admin'')::text', '%Administrator%');
+  perform t.throws('student cannot set roles', alice, 'select public.admin_set_user_role('''||bob||''',''admin'')::text', '%privileges required%');
   perform t.throws('student cannot change settings', alice, 'select public.admin_update_setting(''max_loan_days'',''99'')::text', '%Administrator%');
   perform t.throws('student cannot read dashboard stats', alice, 'select public.admin_dashboard_stats()::text', '%Administrator%');
   perform t.throws('student cannot read reports', alice, 'select public.report_most_borrowed()::text', '%');
@@ -321,14 +321,14 @@ begin
   update public.profiles set status='active' where id=carol;
   -- last-admin protection: adm demotes adm2, then adm2 (now student) can't act; adm stays.
   perform t.succeeds('admin demotes second admin', adm, format('select public.admin_set_user_role(%L,''student'')::text', adm2));
-  update public.profiles set role='admin', status='suspended' where id=carol;
+  update public.profiles set role='super_admin', status='suspended' where id=carol;
   update public.profiles set status='active' where id=carol;
-  perform t.succeeds('carol (admin) suspends adm while another admin exists', carol, format('select public.admin_set_user_status(%L,''suspended'')::text', adm));
-  perform t.throws('suspended admin cannot use admin functions', adm, format('select public.approve_request(%L)::text', gen_random_uuid()), '%Administrator%');
+  perform t.succeeds('carol (super admin) suspends adm while another super admin exists', carol, format('select public.admin_set_user_status(%L,''suspended'')::text', adm));
+  perform t.throws('suspended admin cannot use admin functions', adm, format('select public.approve_request(%L)::text', gen_random_uuid()), '%privileges required%');
   update public.profiles set status='active' where id=adm;
   update public.profiles set role='student' where id=adm;
   perform t.throws('admin cannot demote themselves', carol, format('select public.admin_set_user_role(%L,''student'')::text', carol), '%own role%');
-  update public.profiles set role='admin' where id=adm;
+  update public.profiles set role='super_admin' where id=adm;
   update public.profiles set role='student' where id=carol;
   perform t.throws('admin cannot change own status', adm, format('select public.admin_set_user_status(%L,''active'')::text', adm), '%own account%');
   perform t.throws('invalid domain setting rejected', adm, 'select public.admin_update_setting(''allowed_email_domains'',''["not a domain"]'')::text', '%valid domain%');

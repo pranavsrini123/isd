@@ -29,7 +29,7 @@ async function signup(email, pw, name) {
   await fetch(BASE + '/__confirm?email=' + email)
 }
 await signup('lab.admin@srmist.edu.in', 'Admin12345', 'Lab Admin')
-sql("update public.profiles set role='admin' where email='lab.admin@srmist.edu.in'")
+sql("update public.profiles set role='super_admin' where email='lab.admin@srmist.edu.in'")
 await signup('cat.student@srmist.edu.in', 'Student123', 'Catalogue Student')
 sqlFile(path.join(ROOT, 'supabase/import/components_audit_2026-10-12/replace_inventory_with_audit.sql'))
 sqlFile(path.join(ROOT, 'supabase/import/project_catalogue_2026-10/load_catalogue.sql'))

@@ -8,7 +8,7 @@ begin
   stu   := t.mkuser('ext.student@srmist.edu.in', 'Ext Student');
   other := t.mkuser('ext.other@srmist.edu.in', 'Ext Other');
   adm   := t.mkuser('ext.admin@srmist.edu.in', 'Ext Admin');
-  update public.profiles set role = 'admin' where id = adm;
+  update public.profiles set role = 'super_admin' where id = adm;
   select id into item from public.inventory_items where name = 'Piezo Buzzer';
 
   req := t.as_run(stu, format('select public.create_borrow_request(null,''Extension test'',null,%L,%L,%L)::text',
